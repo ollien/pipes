@@ -17,7 +17,14 @@ module.exports = {
 				test: /\.(glsl|vert|frag)$/,
 				use: [
 					'raw-loader',
-					'glslify-loader',
+					{
+						loader: 'glslify-loader',
+						options: {
+							transform: [
+								['glslify-import'],
+							],
+						},
+					},
 				],
 				exclude: /node_modules/,
 			},
