@@ -25,6 +25,9 @@ float pipe_sdf(vec3 pos) {
 	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres, 0.04);
 }
 
+/**
+ * Gets the normal to a single pipe at the given position
+ */
 vec3 pipe_normal(vec3 pos) {
 	vec3 unnormalized_gradient = vec3(
 		pipe_sdf(pos + vec3(NORMAL_DELTA, 0., 0.)) - pipe_sdf(pos + vec3(-NORMAL_DELTA, 0., 0.)),
