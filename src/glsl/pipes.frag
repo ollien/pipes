@@ -22,7 +22,7 @@ float pipe_sdf(vec3 pos) {
 	float top_sphere = fSphere(vec3(pos.x, pos.y + cylinder_height, pos.z), sphere_radius);
 	float bottom_sphere = fSphere(vec3(pos.x, pos.y - cylinder_height, pos.z), sphere_radius);
 	float spheres = min(top_sphere, bottom_sphere);
-	return min(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres);
+	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres, 0.04);
 }
 
 vec3 pipe_normal(vec3 pos) {
