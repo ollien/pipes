@@ -1,6 +1,6 @@
 import reglModule from 'regl';
-import pipesShaderSource from '@shader/pipes.frag';
-import trianglesShaderSource from '@shader/triangles.vert';
+import pipesShaderSource from '@shader/pipes.frag'; // eslint-disable-line import/no-unresolved
+import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
