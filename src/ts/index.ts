@@ -33,6 +33,7 @@ window.addEventListener('load', () => {
 		vert: trianglesShaderSource,
 		uniforms: {
 			resolution: [canvas.height, canvas.width],
+			time: ({ tick }) => tick,
 		},
 		attributes: {
 			a_position: RENDER_TRIANGLE_VERTS,

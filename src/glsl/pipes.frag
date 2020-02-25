@@ -11,6 +11,7 @@ precision mediump float;
 #define CYLINDER_RADIUS 0.2
 
 uniform vec2 resolution;
+uniform float time;
 
 /**
  * A signed distance function that will represent the pipes in our simulation.
@@ -22,7 +23,22 @@ float pipe_sdf(vec3 pos) {
 	float top_sphere = fSphere(vec3(pos.x, pos.y + cylinder_height, pos.z), sphere_radius);
 	float bottom_sphere = fSphere(vec3(pos.x, pos.y - cylinder_height, pos.z), sphere_radius);
 	float spheres = min(top_sphere, bottom_sphere);
+
 	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres, 0.04);
+}
+
+/**
+ * A signed distance function that will represent the mesh of all of the pipes.
+ */
+float pipes_sdf(vec3 pos) {
+	// pR(pos.xy, 90.);
+	float pipe1 = pipe_sdf(pos);
+	vec3 pipe2_pos = vec3(pos.xy, pos.z);
+	pR(pipe2_pos.xy, 3.14/2.);
+	pipe2_pos.xy += vec2(5. * CYLINDER_RADIUS);
+	float pipe2 = pipe_sdf(pipe2_pos);
+
+	return min(pipe1, pipe2);
 }
 
 /**
@@ -30,9 +46,9 @@ float pipe_sdf(vec3 pos) {
  */
 vec3 pipe_normal(vec3 pos) {
 	vec3 unnormalized_gradient = vec3(
-		pipe_sdf(pos + vec3(NORMAL_DELTA, 0., 0.)) - pipe_sdf(pos + vec3(-NORMAL_DELTA, 0., 0.)),
-		pipe_sdf(pos + vec3(0., NORMAL_DELTA, 0.)) - pipe_sdf(pos + vec3(0., -NORMAL_DELTA, 0.)),
-		pipe_sdf(pos + vec3(0., 0., NORMAL_DELTA)) - pipe_sdf(pos + vec3(0., 0., -NORMAL_DELTA))
+		pipes_sdf(pos + vec3(NORMAL_DELTA, 0., 0.)) - pipes_sdf(pos + vec3(-NORMAL_DELTA, 0., 0.)),
+		pipes_sdf(pos + vec3(0., NORMAL_DELTA, 0.)) - pipes_sdf(pos + vec3(0., -NORMAL_DELTA, 0.)),
+		pipes_sdf(pos + vec3(0., 0., NORMAL_DELTA)) - pipes_sdf(pos + vec3(0., 0., -NORMAL_DELTA))
 	);
 
 	return normalize(unnormalized_gradient);
@@ -70,9 +86,9 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 	vec3 rotated_ray_direction = (viewMatrix(ray_origin, vec3(0.), vec3(0., 1., 0.)) * vec4(centered_ray_direction, 1.)).xyz;
 	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
 		vec3 ray_position = ray_origin - depth * rotated_ray_direction;
-		float sdf_distance = pipe_sdf(ray_position);
+		float sdf_distance = pipes_sdf(ray_position);
 		if (sdf_distance < MARCH_HIT_THRESHOLD) {
-			return pipe_normal(abs(ray_position));
+			return abs(pipe_normal(ray_position));
 		}
 
 		depth += sdf_distance;
@@ -88,7 +104,8 @@ void main() {
 	position.xy -= vec2(0.5);
 	vec3 direction = vec3(position, 1.);
 
-	vec3 observation_point = vec3(-0.8, -0.5, 4.);
+	float rot = 28. * 3.14;
+	vec3 observation_point = vec3(0., -5., 5.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }
