@@ -4,8 +4,10 @@ precision mediump float;
 
 #pragma glslify: import('./vendor/hg_sdf.glsl')
 
-#define MAX_MARCHING_STEPS 5120
+#define MAX_MARCHING_STEPS 512
 #define MARCH_HIT_THRESHOLD 0.001
+#define NORMAL_DELTA 0.001
+
 #define CYLINDER_RADIUS 0.2
 
 uniform vec2 resolution;
@@ -15,7 +17,17 @@ uniform vec2 resolution;
  * Returns the distance from pos to the surface.
  */
 float pipe_sdf(vec3 pos) {
-	return fCylinder(pos, CYLINDER_RADIUS, 0.1);
+	return fCylinder(pos, CYLINDER_RADIUS, CYLINDER_RADIUS);
+}
+
+vec3 pipe_normal(vec3 pos) {
+	vec3 unnormalized_gradient = vec3(
+		pipe_sdf(pos + vec3(NORMAL_DELTA, 0., 0.)) - pipe_sdf(pos + vec3(-NORMAL_DELTA, 0., 0.)),
+		pipe_sdf(pos + vec3(0., NORMAL_DELTA, 0.)) - pipe_sdf(pos + vec3(0., -NORMAL_DELTA, 0.)),
+		pipe_sdf(pos + vec3(0., 0., NORMAL_DELTA)) - pipe_sdf(pos + vec3(0., 0., -NORMAL_DELTA))
+	);
+
+	return normalize(unnormalized_gradient);
 }
 
 vec3 march(vec3 ray_origin, vec3 ray_direction) {
@@ -27,7 +39,7 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 		vec3 ray_position = ray_origin - depth * centered_ray_direction;
 		float sdf_distance = pipe_sdf(ray_position);
 		if (sdf_distance < MARCH_HIT_THRESHOLD) {
-			return vec3(1., 0., 1.);
+			return pipe_normal(ray_position);
 		}
 
 		depth += sdf_distance;
