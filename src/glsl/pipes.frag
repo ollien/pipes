@@ -66,7 +66,7 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 		vec3 ray_position = ray_origin - depth * rotated_ray_direction;
 		float sdf_distance = pipe_sdf(ray_position);
 		if (sdf_distance < MARCH_HIT_THRESHOLD) {
-			return pipe_normal(ray_position);
+			return pipe_normal(abs(ray_position));
 		}
 
 		depth += sdf_distance;
@@ -78,7 +78,7 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 void main() {
 	vec2 position = gl_FragCoord.xy / resolution;
 	vec3 direction = vec3(position, 1.);
-	vec3 observation_point = vec3(0., -0.5, 1.);
+	vec3 observation_point = vec3(-0.8, -0.5, 1.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }

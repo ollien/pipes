@@ -19,8 +19,8 @@ const RENDER_TRIANGLE_VERTS = [
 function setCanvasSize(canvas: HTMLCanvasElement): void {
 	const html = document.querySelector('html');
 	/* eslint-disable no-param-reassign */
-	canvas.height = 512;
-	canvas.width = 512;
+	canvas.height = html.clientHeight - 4;
+	canvas.width = html.clientWidth;
 	/* eslint-enable no-param-reassign */
 }
 
