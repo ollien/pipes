@@ -17,7 +17,12 @@ uniform vec2 resolution;
  * Returns the distance from pos to the surface.
  */
 float pipe_sdf(vec3 pos) {
-	return fCylinder(pos, CYLINDER_RADIUS, CYLINDER_RADIUS);
+	float cylinder_height = 5. * CYLINDER_RADIUS;
+	float sphere_radius = 1.6 * CYLINDER_RADIUS;
+	float top_sphere = fSphere(vec3(pos.x, pos.y + cylinder_height, pos.z), sphere_radius);
+	float bottom_sphere = fSphere(vec3(pos.x, pos.y - cylinder_height, pos.z), sphere_radius);
+	float spheres = min(top_sphere, bottom_sphere);
+	return min(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres);
 }
 
 vec3 pipe_normal(vec3 pos) {
@@ -78,7 +83,7 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 void main() {
 	vec2 position = gl_FragCoord.xy / resolution;
 	vec3 direction = vec3(position, 1.);
-	vec3 observation_point = vec3(-0.8, -0.5, 1.);
+	vec3 observation_point = vec3(-0.8, -0.5, 4.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }
