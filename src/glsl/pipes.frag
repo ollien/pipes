@@ -30,13 +30,40 @@ vec3 pipe_normal(vec3 pos) {
 	return normalize(unnormalized_gradient);
 }
 
+/**
+ * Return a transformation matrix that will transform a ray from view space
+ * to world coordinates, given the eye point, the camera target, and an up vector.
+ *
+ * This assumes that the center of the camera is aligned with the negative z axis in
+ * view space when calculating the ray marching direction.
+ *
+ * Taken from: http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
+ */
+mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
+    // Based on gluLookAt man page
+    vec3 f = normalize(center - eye);
+    vec3 s = normalize(cross(f, up));
+    vec3 u = cross(s, f);
+    return mat4(
+        vec4(s, 0.0),
+        vec4(u, 0.0),
+        vec4(-f, 0.0),
+        vec4(0.0, 0.0, 0.0, 1)
+    );
+}
+
+/**
+ * Perform a raymarching operation from the given origin along the given direction vector.
+ */
 vec3 march(vec3 ray_origin, vec3 ray_direction) {
 	float depth = 0.;
 	// Our SDF will always consider (0, 0) to be the center, but we consider the center to be (0.5, 0.5).
 	// We must thus translate our origin
-	vec3 centered_ray_direction = vec3(ray_direction.xy - vec2(0.5), ray_direction.z);
+	vec3 centered_ray_direction = normalize(vec3(ray_direction.xy - vec2(0.5), ray_direction.z));
+	// Rotate the ray direction to look at the ray origin
+	vec3 rotated_ray_direction = (viewMatrix(ray_origin, vec3(0.), vec3(0., 1., 0.)) * vec4(centered_ray_direction, 1.)).xyz;
 	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-		vec3 ray_position = ray_origin - depth * centered_ray_direction;
+		vec3 ray_position = ray_origin - depth * rotated_ray_direction;
 		float sdf_distance = pipe_sdf(ray_position);
 		if (sdf_distance < MARCH_HIT_THRESHOLD) {
 			return pipe_normal(ray_position);
@@ -51,7 +78,7 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 void main() {
 	vec2 position = gl_FragCoord.xy / resolution;
 	vec3 direction = vec3(position, 1.);
-	vec3 observation_point = vec3(0., 0., 1.);
+	vec3 observation_point = vec3(0., -0.5, 1.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }
