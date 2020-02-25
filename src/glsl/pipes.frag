@@ -62,9 +62,7 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
  */
 vec3 march(vec3 ray_origin, vec3 ray_direction) {
 	float depth = 0.;
-	// Our SDF will always consider (0, 0) to be the center, but we consider the center to be (0.5, 0.5).
-	// We must thus translate our origin
-	vec3 centered_ray_direction = normalize(vec3(ray_direction.xy - vec2(0.5), ray_direction.z));
+	vec3 centered_ray_direction = normalize(vec3(ray_direction.xy, ray_direction.z));
 	// Rotate the ray direction to look at the ray origin
 	vec3 rotated_ray_direction = (viewMatrix(ray_origin, vec3(0.), vec3(0., 1., 0.)) * vec4(centered_ray_direction, 1.)).xyz;
 	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
@@ -82,7 +80,11 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 
 void main() {
 	vec2 position = gl_FragCoord.xy / resolution;
+	// Our SDF will always consider (0, 0) to be the center, but we consider the center to be (0.5, 0.5).
+	// We must thus translate our origin
+	position.xy -= vec2(0.5);
 	vec3 direction = vec3(position, 1.);
+
 	vec3 observation_point = vec3(-0.8, -0.5, 4.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
