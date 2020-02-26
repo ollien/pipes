@@ -9,6 +9,7 @@
   },
   "author": "ollien",
   "dependencies": {
+    "lodash": "^4.17.15",
     "regl": "^1.3.13"
   },
   "devDependencies": {

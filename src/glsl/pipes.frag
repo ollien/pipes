@@ -10,8 +10,13 @@ precision mediump float;
 
 #define CYLINDER_RADIUS 0.2
 
+// Stop direction checking at 128, no matter what. We can't base our loop on num_directions, as that isn't an ICE.
+#define MAX_DIRECTIONS 128
+
 uniform vec2 resolution;
 uniform float time;
+uniform sampler2D direction_texture;
+uniform int num_directions;
 
 /**
  * A signed distance function that will represent the pipes in our simulation.
@@ -39,15 +44,32 @@ float pipes_sdf(vec3 pos) {
 	vec3 pipe_pos = pos;
 	float pipes = pipe_sdf(pipe_pos);
 
-	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
-	pR(pipe_pos.yz, PI/2.);
-	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
-	pipes = min(pipes, pipe_sdf(pipe_pos));
+	float rotate_amount = PI/2.;
+	// TODO: This loop is INCREDIBLY non-performant.
+	for (int i = 0; i < MAX_DIRECTIONS; i++){
+		if (i >= num_directions) {
+			break;
+		}
 
-	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
-	pR(pipe_pos.yx, PI/2.);
-	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
-	pipes = min(pipes, pipe_sdf(pipe_pos));
+		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+		float x = float(i)/float(num_directions);
+		vec4 next_direction = texture2D(direction_texture, vec2(x, 0.));
+		if (next_direction.x > 0. && next_direction.w > 0.) {
+			pR(pipe_pos.yz, rotate_amount);
+		} else if (next_direction.x > 0.) {
+			pR(pipe_pos.zy, rotate_amount);
+		} else if (next_direction.y > 0. && next_direction.w > 0.) {
+			pR(pipe_pos.xz, rotate_amount);
+		} else if (next_direction.y > 0.) {
+			pR(pipe_pos.zx, rotate_amount);
+		} else if (next_direction.z > 0. && next_direction.w > 0.) {
+			pR(pipe_pos.yx, rotate_amount);
+		} else if (next_direction.z > 0.) {
+			pR(pipe_pos.xy, rotate_amount);
+		}
+		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+		pipes = min(pipes, pipe_sdf(pipe_pos));
+	}
 
 	return pipes;
 }
@@ -116,7 +138,7 @@ void main() {
 	vec3 direction = vec3(position, 1.);
 
 	float rot = 28. * 3.14;
-	vec3 observation_point = vec3(5., -5., 5.);
+	vec3 observation_point = vec3(10., -10., 10.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }
