@@ -31,14 +31,25 @@ float pipe_sdf(vec3 pos) {
  * A signed distance function that will represent the mesh of all of the pipes.
  */
 float pipes_sdf(vec3 pos) {
-	// pR(pos.xy, 90.);
-	float pipe1 = pipe_sdf(pos);
-	vec3 pipe2_pos = vec3(pos.xy, pos.z);
-	pR(pipe2_pos.xy, 3.14/2.);
-	pipe2_pos.xy += vec2(5. * CYLINDER_RADIUS);
-	float pipe2 = pipe_sdf(pipe2_pos);
+	// The cylinder starts along the y axis, so every time we move it, we are manipulating its "y axis."
+	// It will always grow along this axis, even though it is not ACTUALLY along this axis.
+	// Think of it as a virtual "pipe axis." No rotation can be about the y axis, as it would not actually perform
+	// a pipe pivot.
+	vec3 growth_vector = vec3(0., 1., 0.);
+	vec3 pipe_pos = pos;
+	float pipes = pipe_sdf(pipe_pos);
 
-	return min(pipe1, pipe2);
+	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+	pR(pipe_pos.yz, PI/2.);
+	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+	pipes = min(pipes, pipe_sdf(pipe_pos));
+
+	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+	pR(pipe_pos.yx, PI/2.);
+	pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+	pipes = min(pipes, pipe_sdf(pipe_pos));
+
+	return pipes;
 }
 
 /**
@@ -105,7 +116,7 @@ void main() {
 	vec3 direction = vec3(position, 1.);
 
 	float rot = 28. * 3.14;
-	vec3 observation_point = vec3(0., -5., 5.);
+	vec3 observation_point = vec3(5., -5., 5.);
 	vec3 marched_ray = march(observation_point, direction);
 	gl_FragColor = vec4(marched_ray, 1.);
 }
