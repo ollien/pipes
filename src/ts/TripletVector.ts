@@ -41,6 +41,11 @@ export class TripletVector {
 		return new TripletVector(rotated);
 	}
 
+	/**
+	 * Add another TripletVector to this one.
+	 *
+	 * @param operand The vector to add.
+	 */
 	add(operand: TripletVector): TripletVector {
 		const addedTriplets = <Triplet<number>> this.coordinateTriplet.map(
 			(value: number, index: number): number => value + operand.getTriplet()[index],
@@ -49,8 +54,16 @@ export class TripletVector {
 		return new TripletVector(addedTriplets);
 	}
 
+	/**
+	 * Add a distance to this vector in the direction it is facing.
+	 * @param n The distance to add.
+	 */
 	addDistance(n: number): TripletVector {
 		const currentMagnitude = this.magnitude();
+		if (currentMagnitude === 0) {
+			return new TripletVector(<Triplet<number>> this.coordinateTriplet.slice());
+		}
+
 		const res = <Triplet<number>> this.coordinateTriplet.map(
 			(value: number): number => ((currentMagnitude + n) / currentMagnitude) * value,
 		);
@@ -58,6 +71,9 @@ export class TripletVector {
 		return new TripletVector(res);
 	}
 
+	/**
+	 * Get the magnitude of this vector
+	 */
 	magnitude(): number {
 		return Math.sqrt(this.coordinateTriplet.reduce(
 			(magnitude: number, value: number): number => magnitude + value ** 2,

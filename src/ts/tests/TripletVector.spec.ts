@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import 'mocha';
 import { Triplet, TripletVector } from '../TripletVector'; // eslint-disable-line no-unused-vars
 
-describe('Coordinates', () => {
+describe('TripletVector', () => {
 	it('should multiply matrices correctly', () => {
 		const coordinate = new TripletVector([2, 1, 3]);
 		const multiplied = coordinate.multiplyByMatrix([
@@ -34,7 +34,6 @@ describe('Coordinates', () => {
 		const coordinate = new TripletVector([1, 2, 2]);
 		const lengthened = coordinate.addDistance(1);
 
-		// Assert that the magnitudes are the same
 		assert.equal(lengthened.magnitude(), coordinate.magnitude() + 1);
 	});
 
@@ -73,13 +72,20 @@ describe('Coordinates', () => {
 		);
 	});
 
+	it('should not alter the vector when the magnitude is zero', () => {
+		const coordinate = new TripletVector([0, 0, 0]);
+		const lengthened = coordinate.addDistance(1);
+
+		assert.deepEqual(lengthened.getTriplet(), lengthened.getTriplet());
+	});
+
 	it('should allow you to get magnitude', () => {
 		const coordinate = new TripletVector([1, 2, 2]);
 
 		assert.equal(coordinate.magnitude(), 3);
 	});
 
-	it('should add coordinates properly', () => {
+	it('should add properly', () => {
 		const coordinate1 = new TripletVector([1, 2, 3]);
 		const coordinate2 = new TripletVector([4, 5, 6]);
 		const added = coordinate1.add(coordinate2);
