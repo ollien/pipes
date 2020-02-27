@@ -32,12 +32,28 @@ export class Coordinate {
 		// All of these lines are too long to actually use one line arrow functions
 		/* eslint-disable arrow-body-style */
 		const rotated = <Triplet<number>> this.coordinateTriplet.map((_, rowIndex: number): number => {
-			return matrix[rowIndex].reduce((rowTotal: number, matrixItem: number, colIndex: number) => {
+			return matrix[rowIndex].reduce((rowTotal: number, matrixItem: number, colIndex: number): number => {
 				return rowTotal + matrixItem * this.coordinateTriplet[colIndex];
 			}, 0);
 		});
 		/* eslint-enable arrow-body-style */
 
 		return new Coordinate(rotated);
+	}
+
+	addDistance(n: number): Coordinate {
+		const currentMagnitude = this.magnitude();
+		const res = <Triplet<number>> this.coordinateTriplet.map(
+			(value: number): number => ((currentMagnitude + n) / currentMagnitude) * value,
+		);
+
+		return new Coordinate(res);
+	}
+
+	magnitude(): number {
+		return Math.sqrt(this.coordinateTriplet.reduce(
+			(magnitude: number, value: number): number => magnitude + value ** 2,
+			0,
+		));
 	}
 }
