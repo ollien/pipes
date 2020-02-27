@@ -8,6 +8,7 @@ precision mediump float;
 #define FLOAT_MAX 3.402823466e+38
 
 #define MAX_MARCHING_STEPS 512
+#define MAX_MARCHING_DISTANCE 1000.
 #define MARCH_HIT_THRESHOLD 0.001
 #define NORMAL_DELTA 0.001
 
@@ -110,6 +111,11 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 		}
 
 		depth += sdf_distance;
+
+		// If the distance is so far away that we will not hit it reasonably, break out early.
+		if (depth >= MAX_MARCHING_DISTANCE) {
+			break;
+		}
 	}
 
 	return vec3(0.);
