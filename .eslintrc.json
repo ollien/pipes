@@ -27,7 +27,8 @@
         "import/extensions": "off",
         "import/prefer-default-export": "off",
         "max-len": ["error", {"code": 120}],
-        "no-bitwise": "off"
+        "no-bitwise": "off",
+        "class-methods-use-this": "off"
     },
     "settings": {
         "import/resolver": {

@@ -4,19 +4,24 @@ precision mediump float;
 
 #pragma glslify: import('./vendor/hg_sdf.glsl')
 
+// GL_ES uses IEEE754 floats, where this is the maximum
+#define FLOAT_MAX 3.402823466e+38
+
 #define MAX_MARCHING_STEPS 512
 #define MARCH_HIT_THRESHOLD 0.001
 #define NORMAL_DELTA 0.001
 
 #define CYLINDER_RADIUS 0.2
 
-// Stop direction checking at 128, no matter what. We can't base our loop on num_directions, as that isn't an ICE.
-#define MAX_DIRECTIONS 128
+// The number of directions that will be passed to this shader.
+#define NUM_DIRECTIONS 16
 
 uniform vec2 resolution;
 uniform float time;
 uniform sampler2D direction_texture;
 uniform int num_directions;
+
+uniform mat3 direction_matrices[NUM_DIRECTIONS];
 
 /**
  * A signed distance function that will represent the pipes in our simulation.
@@ -42,31 +47,11 @@ float pipes_sdf(vec3 pos) {
 	// a pipe pivot.
 	vec3 growth_vector = vec3(0., 1., 0.);
 	vec3 pipe_pos = pos;
-	float pipes = pipe_sdf(pipe_pos);
+	float pipes = FLOAT_MAX;
 
-	float rotate_amount = PI/2.;
-	// TODO: This loop is INCREDIBLY non-performant.
-	for (int i = 0; i < MAX_DIRECTIONS; i++){
-		if (i >= num_directions) {
-			break;
-		}
-
+	for (int i = 0; i < NUM_DIRECTIONS; i++) {
 		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
-		float x = float(i)/float(num_directions);
-		vec4 next_direction = texture2D(direction_texture, vec2(x, 0.));
-		if (next_direction.x > 0. && next_direction.w > 0.) {
-			pR(pipe_pos.yz, rotate_amount);
-		} else if (next_direction.x > 0.) {
-			pR(pipe_pos.zy, rotate_amount);
-		} else if (next_direction.y > 0. && next_direction.w > 0.) {
-			pR(pipe_pos.xz, rotate_amount);
-		} else if (next_direction.y > 0.) {
-			pR(pipe_pos.zx, rotate_amount);
-		} else if (next_direction.z > 0. && next_direction.w > 0.) {
-			pR(pipe_pos.yx, rotate_amount);
-		} else if (next_direction.z > 0.) {
-			pR(pipe_pos.xy, rotate_amount);
-		}
+		pipe_pos = direction_matrices[i] * pipe_pos;
 		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
 		pipes = min(pipes, pipe_sdf(pipe_pos));
 	}
