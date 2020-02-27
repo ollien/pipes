@@ -41,6 +41,14 @@ export class Coordinate {
 		return new Coordinate(rotated);
 	}
 
+	add(operand: Coordinate): Coordinate {
+		const addedTriplets = <Triplet<number>> this.coordinateTriplet.map(
+			(value: number, index: number): number => value + operand.getTriplet()[index],
+		);
+
+		return new Coordinate(addedTriplets);
+	}
+
 	addDistance(n: number): Coordinate {
 		const currentMagnitude = this.magnitude();
 		const res = <Triplet<number>> this.coordinateTriplet.map(

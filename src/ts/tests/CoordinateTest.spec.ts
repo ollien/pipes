@@ -2,7 +2,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert } from 'chai';
 import 'mocha';
-import lodash from 'lodash';
 import { Triplet, Coordinate } from '../Coordinate'; // eslint-disable-line no-unused-vars
 
 describe('Coordinates', () => {
@@ -14,7 +13,7 @@ describe('Coordinates', () => {
 			[7, 8, 9],
 		]);
 
-		assert.isTrue(lodash.isEqual(multiplied.getTriplet(), [13, 31, 49]));
+		assert.deepEqual(multiplied.getTriplet(), [13, 31, 49]);
 	});
 
 	it('should stringify integers without rounding', () => {
@@ -78,5 +77,13 @@ describe('Coordinates', () => {
 		const coordinate = new Coordinate([1, 2, 2]);
 
 		assert.equal(coordinate.magnitude(), 3);
+	});
+
+	it('should add coordinates properly', () => {
+		const coordinate1 = new Coordinate([1, 2, 3]);
+		const coordinate2 = new Coordinate([4, 5, 6]);
+		const added = coordinate1.add(coordinate2);
+
+		assert.deepEqual(added.getTriplet(), [5, 7, 9]);
 	});
 });
