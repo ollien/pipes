@@ -13,6 +13,8 @@ precision mediump float;
 #define NORMAL_DELTA 0.001
 
 #define CYLINDER_RADIUS 0.2
+#define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
+#define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
 
 // The number of directions that will be passed to this shader.
 #define NUM_DIRECTIONS 16
@@ -29,13 +31,11 @@ uniform mat3 direction_matrices[NUM_DIRECTIONS];
  * Returns the distance from pos to the surface.
  */
 float pipe_sdf(vec3 pos) {
-	float cylinder_height = 5. * CYLINDER_RADIUS;
-	float sphere_radius = 1.6 * CYLINDER_RADIUS;
-	float top_sphere = fSphere(vec3(pos.x, pos.y + cylinder_height, pos.z), sphere_radius);
-	float bottom_sphere = fSphere(vec3(pos.x, pos.y - cylinder_height, pos.z), sphere_radius);
+	float top_sphere = fSphere(vec3(pos.x, pos.y + CYLINDER_HEIGHT, pos.z), SPHERE_RADIUS);
+	float bottom_sphere = fSphere(vec3(pos.x, pos.y - CYLINDER_HEIGHT, pos.z), SPHERE_RADIUS);
 	float spheres = min(top_sphere, bottom_sphere);
 
-	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, cylinder_height), spheres, 0.04);
+	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, CYLINDER_HEIGHT), spheres, 0.04);
 }
 
 /**
@@ -51,9 +51,9 @@ float pipes_sdf(vec3 pos) {
 	float pipes = FLOAT_MAX;
 
 	for (int i = 0; i < NUM_DIRECTIONS; i++) {
-		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+		pipe_pos += CYLINDER_HEIGHT * growth_vector;
 		pipe_pos = direction_matrices[i] * pipe_pos;
-		pipe_pos += (5. * CYLINDER_RADIUS) * growth_vector;
+		pipe_pos += CYLINDER_HEIGHT * growth_vector;
 		pipes = min(pipes, pipe_sdf(pipe_pos));
 	}
 
