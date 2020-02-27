@@ -74,9 +74,9 @@ export default class PipeGenerator {
 				[0, sinValue, cosValue],
 			],
 			[Axis.Y]: [
-				[1, 0, 0],
-				[0, cosValue, -sinValue],
-				[0, sinValue, cosValue],
+				[cosValue, 0, sinValue],
+				[0, 1, 0],
+				[-sinValue, 0, cosValue],
 			],
 			[Axis.Z]: [
 				[cosValue, -sinValue, 0],
