@@ -10,6 +10,11 @@ enum Axis {
 }
 /* eslint-enable no-unused-vars */
 
+interface RotationDirection {
+	axis: Axis,
+	polarity: number,
+}
+
 type Triplet<T> = [T, T, T];
 
 export default class PipeGenerator {
@@ -20,30 +25,30 @@ export default class PipeGenerator {
 	 * @param rotationAngle The angle to rotate by each time, in degrees.
 	 */
 	generatePipeDirections(numPipes: number, rotationAngle: number): Triplet<Triplet<number>>[] {
-		const possibleDirections: [Axis, number][] = [
-			[Axis.X, 1],
-			[Axis.Y, 1],
-			[Axis.Z, 1],
-			[Axis.X, -1],
-			[Axis.Y, -1],
-			[Axis.Z, -1],
+		const possibleRotations: RotationDirection[] = [
+			{ axis: Axis.X, polarity: 1 },
+			{ axis: Axis.Y, polarity: 1 },
+			{ axis: Axis.Z, polarity: 1 },
+			{ axis: Axis.X, polarity: -1 },
+			{ axis: Axis.Y, polarity: -1 },
+			{ axis: Axis.Z, polarity: -1 },
 		];
 
-		let lastDirection: [Axis, number]|null = null;
+		let lastDirection: RotationDirection|null = null;
 		return Array(numPipes).fill(0).map((): Triplet<Triplet<number>> => {
-			const directionPossibilities = possibleDirections.filter((direction) => {
+			const rotationPossibilities = possibleRotations.filter((rotation: RotationDirection) => {
 				if (lastDirection === null) {
 					return true;
 				}
 
-				const forbiddenDirection = [lastDirection[0], -1 * lastDirection[1]];
-				return !lodash.isEqual(direction, forbiddenDirection);
+				const forbiddenDirection = { axis: lastDirection.axis, polarity: -1 * lastDirection.polarity };
+				return !lodash.isEqual(rotation, forbiddenDirection);
 			});
 
-			const direction = PipeGenerator.getRandomArrayElement(directionPossibilities);
+			const direction: RotationDirection = PipeGenerator.getRandomArrayElement(rotationPossibilities);
 			lastDirection = direction;
 
-			return PipeGenerator.makeRotationMatrixForAxis(direction[0], direction[1] * rotationAngle);
+			return PipeGenerator.makeRotationMatrixForAxis(direction.axis, direction.polarity * rotationAngle);
 		});
 	}
 
