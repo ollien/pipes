@@ -17,7 +17,7 @@ precision mediump float;
 #define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
 
 // The number of directions that will be passed to this shader.
-#define NUM_DIRECTIONS 16
+#define NUM_DIRECTIONS 32
 
 uniform vec2 resolution;
 uniform float time;
