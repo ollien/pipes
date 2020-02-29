@@ -56,23 +56,25 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 	vec3 pipe_pos = pos;
 	float pipes = FLOAT_MAX;
 
-	for (int i = 0; i < NUM_DIRECTIONS * NUM_PIPES; i++) {
-		if (float(i) > time) {
-			break;
-		}
-
+	for (int i = 0; i < NUM_PIPES; i++) {
 		// HACK: Because we cannot use pipe_id in an array index expression, we must continue/break if we aren't
 		// in the right range.
-		if (i < NUM_DIRECTIONS * pipe_id) {
+		if (i < pipe_id) {
 			continue;
-		} else if (i >= NUM_DIRECTIONS * (pipe_id + 1)) {
+		} else if (i > pipe_id) {
 			break;
 		}
 
-		pipe_pos += CYLINDER_HEIGHT * growth_vector;
-		pipe_pos = direction_matrices[i] * pipe_pos;
-		pipe_pos += CYLINDER_HEIGHT * growth_vector;
-		pipes = min(pipes, pipe_segment_sdf(pipe_pos));
+		for (int j = 0; j < NUM_DIRECTIONS; j++) {
+			if (float(i*NUM_DIRECTIONS + j) > time) {
+				break;
+			}
+
+			pipe_pos += CYLINDER_HEIGHT * growth_vector;
+			pipe_pos = direction_matrices[i * NUM_DIRECTIONS + j] * pipe_pos;
+			pipe_pos += CYLINDER_HEIGHT * growth_vector;
+			pipes = min(pipes, pipe_segment_sdf(pipe_pos));
+		}
 	}
 
 	return pipes;
@@ -84,7 +86,9 @@ float pipe_sdf(vec3 pos, int pipe_id) {
  */
 vec2 pipes_sdf(vec3 pos) {
 	vec2 res = vec2(FLOAT_MAX, FLOAT_MAX);
-	for (int i = 0; i < NUM_PIPES; i++) {
+	// By looping over the pipes backwards, we break out of the pipe_id loop in pipe_sdf sonner when the shader
+	// is getting slower from having more pipes.
+	for (int i = NUM_PIPES - 1; i >= 0; i--) {
 		float pipe_distance = pipe_sdf(pos, i);
 		if (pipe_distance < res.x) {
 			res.x = pipe_distance;
