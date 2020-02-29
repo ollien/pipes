@@ -2,7 +2,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert } from 'chai';
 import 'mocha';
-import PipeGenerator, {Triplet, Rotation, Axis } from '../PipeGenerator'; // eslint-disable-line no-unused-vars
+import PipeGenerator, { Triplet, Rotation, Axis } from '../PipeGenerator'; // eslint-disable-line no-unused-vars
 
 /**
  * Perform the operation matrix vector multiplication Ax
