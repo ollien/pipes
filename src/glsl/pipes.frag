@@ -74,6 +74,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 	vec3 growth_vector = vec3(0., 1., 0.);
 	vec3 pipe_pos = pos;
 	float pipes = FLOAT_MAX;
+	bool drawn = false;
 
 	for (int i = 0; i < NUM_PIPES; i++) {
 		// HACK: Because we cannot use pipe_id in an array index expression, we must continue/break if we aren't
@@ -85,11 +86,12 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 		}
 
 		for (int j = 0; j < NUM_DIRECTIONS; j++) {
-			// Don't display a pipe until it's time to - this produces the "draw-in" effect of the pipes"
+			// Don't display a pipe until it's time to - this produces the "draw-in" effect of the pipes
 			if (float(i*NUM_DIRECTIONS + j) > time) {
 				break;
 			}
 
+			drawn = true;
 			Rotation rotation = rotations[i*NUM_DIRECTIONS + j];
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
 			pipe_pos = rotation.matrix * pipe_pos;
@@ -99,7 +101,18 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 		}
 	}
 
-	float cappingSphere = makeJointSphere(pipe_pos, vec3(0., CYLINDER_HEIGHT, 0.));
+
+	// Add a sphere to the start/end of the pipe run, but only if we've actually drawn something.
+	// By doing this, we save the time of calling extra SDFs we don't need to.
+	if (!drawn) {
+		return FLOAT_MAX;
+	}
+
+	float cappingSphere = min(
+		makeJointSphere(pos, vec3(0., CYLINDER_HEIGHT, 0.)),
+		makeJointSphere(pipe_pos, vec3(0., CYLINDER_HEIGHT, 0.))
+	);
+
 	return fOpUnionSoft(pipes, cappingSphere, PIPE_UNION_SOFT_FACTOR);
 }
 
