@@ -146,6 +146,9 @@ void main() {
 	// Our SDF will always consider (0, 0) to be the center, but we consider the center to be (0.5, 0.5).
 	// We must thus translate our origin
 	position.xy -= vec2(0.5);
+
+	// Correct for aspect ratio.
+	position.x *= resolution.x / resolution.y;
 	vec3 direction = vec3(position, 1.);
 
 	vec3 observation_point = vec3(10., -10., 10.);
