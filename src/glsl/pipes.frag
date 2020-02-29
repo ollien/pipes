@@ -71,7 +71,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 			}
 
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
-			pipe_pos = direction_matrices[i * NUM_DIRECTIONS + j] * pipe_pos;
+			pipe_pos = direction_matrices[i*NUM_DIRECTIONS + j] * pipe_pos;
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
 			pipes = min(pipes, pipe_segment_sdf(pipe_pos));
 		}
