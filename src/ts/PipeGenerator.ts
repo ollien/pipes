@@ -3,19 +3,26 @@ import lodash from 'lodash';
 // Axis represents an axis that a pipe can travel along
 // These aren't actually unused, eslint just bugs out about it.
 /* eslint-disable no-unused-vars */
-enum Axis {
+export enum Axis {
 	X = 1,
 	Y,
 	Z
 }
 /* eslint-enable no-unused-vars */
 
-interface RotationDirection {
+export type Triplet<T> = [T, T, T];
+
+// Represents the base of a rotation, simply the axis and the basis.
+interface RotationDirectionBasis {
 	axis: Axis,
 	polarity: number,
 }
 
-export type Triplet<T> = [T, T, T];
+// Represents a rotation about a given axis with a standard angle.
+export interface Rotation {
+	axis: Axis,
+	angle: number,
+}
 
 export default class PipeGenerator {
 	/**
@@ -24,8 +31,8 @@ export default class PipeGenerator {
 	 * @param numPipes The number of pipes to generate
 	 * @param rotationAngle The angle to rotate by each time, in degrees.
 	 */
-	generatePipeDirections(numPipes: number, rotationAngle: number): Triplet<Triplet<number>>[] {
-		const possibleRotations: RotationDirection[] = [
+	generatePipeDirections(numPipes: number, rotationAngle: number): Rotation[] {
+		const possibleRotations: RotationDirectionBasis[] = [
 			{ axis: Axis.X, polarity: 1 },
 			{ axis: Axis.Y, polarity: 1 },
 			{ axis: Axis.Z, polarity: 1 },
@@ -34,9 +41,9 @@ export default class PipeGenerator {
 			{ axis: Axis.Z, polarity: -1 },
 		];
 
-		let lastDirection: RotationDirection|null = null;
-		return Array(numPipes).fill(0).map((): Triplet<Triplet<number>> => {
-			const rotationPossibilities = possibleRotations.filter((rotation: RotationDirection) => {
+		let lastDirection: RotationDirectionBasis|null = null;
+		return Array(numPipes).fill(0).map((): Rotation => {
+			const rotationPossibilities = possibleRotations.filter((rotation: RotationDirectionBasis) => {
 				if (lastDirection === null) {
 					return true;
 				}
@@ -45,31 +52,19 @@ export default class PipeGenerator {
 				return !lodash.isEqual(rotation, forbiddenDirection);
 			});
 
-			const direction: RotationDirection = PipeGenerator.getRandomArrayElement(rotationPossibilities);
+			const direction: RotationDirectionBasis = PipeGenerator.getRandomArrayElement(rotationPossibilities);
 			lastDirection = direction;
 
-			return PipeGenerator.makeRotationMatrixForAxis(direction.axis, direction.polarity * rotationAngle);
+			return { axis: direction.axis, angle: direction.polarity * rotationAngle };
 		});
 	}
 
 	/**
-	 * Get a random item from an array
-	 *
-	 * @param arr
+	 * Get the rotation matrix for the given rotation.
+	 * @param rotation
 	 */
-	private static getRandomArrayElement<T>(arr: T[]): T {
-		const index = Math.floor(arr.length * Math.random());
-
-		return arr[index];
-	}
-
-	/**
-	 * Make a rotation matrix that will rotate along the given axis.
-	 * @param axis The axis to rotate about
-	 * @param angle The angle to use, given in degrees
-	 */
-	private static makeRotationMatrixForAxis(axis: Axis, angle: number): Triplet<Triplet<number>> {
-		const angleRads = this.degreesToRadians(angle);
+	getRotationMatrix(rotation: Rotation): Triplet<Triplet<number>> {
+		const angleRads = PipeGenerator.degreesToRadians(rotation.angle);
 		const sinValue = Math.sin(angleRads);
 		const cosValue = Math.cos(angleRads);
 		const rotationMatrices: { [key in Axis]: Triplet<Triplet<number>> } = {
@@ -90,7 +85,18 @@ export default class PipeGenerator {
 			],
 		};
 
-		return rotationMatrices[axis];
+		return rotationMatrices[rotation.axis];
+	}
+
+	/**
+	 * Get a random item from an array
+	 *
+	 * @param arr
+	 */
+	private static getRandomArrayElement<T>(arr: T[]): T {
+		const index = Math.floor(arr.length * Math.random());
+
+		return arr[index];
 	}
 
 	/**
