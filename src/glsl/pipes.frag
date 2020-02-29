@@ -66,6 +66,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 		}
 
 		for (int j = 0; j < NUM_DIRECTIONS; j++) {
+			// Don't display a pipe until it's time to - this produces the "draw-in" effect of the pipes"
 			if (float(i*NUM_DIRECTIONS + j) > time) {
 				break;
 			}
@@ -182,14 +183,17 @@ float light_pipe_normal(vec3 observation_point, vec3 light_position, vec3 surfac
 /**
  * Get the color for the given pipe id.
  */
-vec3 get_color_for_pipe(float pipe_id) {
+vec3 get_color_for_pipe(int pipe_id) {
 	// HACK: GLSL doesn't allow us to access array ids with anything other than constants or loop variables, so we must
 	// perform a "linear search" of sorts in order to get the color for the given pipe.
-	// The +/- 0.5 is simply for safety when dealing with annoying floating points. 0.5 might be a bit aggressive.
 	for (int i = 0; i < NUM_PIPES; i++) {
-		if (float(i) >= pipe_id - 0.5 && float(i) <= pipe_id + 0.5) {
-			return colors[i];
+		if (i < pipe_id) {
+			continue;
+		} else if (i > pipe_id) {
+			break;
 		}
+
+		return colors[i];
 	}
 
 	return vec3(0.);
@@ -207,7 +211,7 @@ void main() {
 	vec3 observation_point = vec3(10., -10., 10.);
 	vec4 marched_pipe = get_marched_pipe(observation_point, direction);
 	vec3 marched_ray_normal = marched_pipe.xyz;
-	float marched_pipe_id = marched_pipe.w;
+	int marched_pipe_id = int(floor(marched_pipe.w + 0.5));
 	float lit_result = light_pipe_normal(observation_point, observation_point, marched_ray_normal);
 	vec3 pipe_color = get_color_for_pipe(marched_pipe_id);
 
