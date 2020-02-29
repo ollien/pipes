@@ -12,8 +12,8 @@ export enum Axis {
 
 export type Triplet<T> = [T, T, T];
 
-// Represents the base of a rotation, simply the axis and the basis.
-interface RotationDirectionBasis {
+// Represents the base of a rotation, simply the axis and the polarity.
+export interface RotationDirection {
 	axis: Axis,
 	polarity: number,
 }
@@ -25,14 +25,23 @@ export interface Rotation {
 }
 
 export default class PipeGenerator {
+	private readonly selector: (directions: RotationDirection[]) => RotationDirection;
+
 	/**
-	 * Returns a set of rotation matrices for the given number of pipes, rotated by the given rotationAngle
-	 * along a random axis.
+	 * @param selector A function to select a rotation direction from a list of possibilities.
+	 *                 Defaults to a function that selects a ranodom direction.
+	 */
+	constructor(selector?: (directions: RotationDirection[]) => RotationDirection) {
+		this.selector = selector == null ? PipeGenerator.getRandomArrayElement : selector;
+	}
+
+	/**
+	 * Returns a set of rotations for the given number of pipes, rotated by the given rotationAngle along a random axis.
 	 * @param numPipes The number of pipes to generate
 	 * @param rotationAngle The angle to rotate by each time, in degrees.
 	 */
 	generatePipeDirections(numPipes: number, rotationAngle: number): Rotation[] {
-		const possibleRotations: RotationDirectionBasis[] = [
+		const possibleRotations: RotationDirection[] = [
 			{ axis: Axis.X, polarity: 1 },
 			{ axis: Axis.Y, polarity: 1 },
 			{ axis: Axis.Z, polarity: 1 },
@@ -41,9 +50,9 @@ export default class PipeGenerator {
 			{ axis: Axis.Z, polarity: -1 },
 		];
 
-		let lastDirection: RotationDirectionBasis|null = null;
+		let lastDirection: RotationDirection|null = null;
 		return Array(numPipes).fill(0).map((): Rotation => {
-			const rotationPossibilities = possibleRotations.filter((rotation: RotationDirectionBasis) => {
+			const rotationPossibilities = possibleRotations.filter((rotation: RotationDirection) => {
 				if (lastDirection === null) {
 					return true;
 				}
@@ -52,7 +61,7 @@ export default class PipeGenerator {
 				return !lodash.isEqual(rotation, forbiddenDirection);
 			});
 
-			const direction: RotationDirectionBasis = PipeGenerator.getRandomArrayElement(rotationPossibilities);
+			const direction: RotationDirection = this.selector(rotationPossibilities);
 			lastDirection = direction;
 
 			return { axis: direction.axis, angle: direction.polarity * rotationAngle };

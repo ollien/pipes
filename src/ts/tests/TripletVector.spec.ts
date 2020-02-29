@@ -2,7 +2,15 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert } from 'chai';
 import 'mocha';
-import PipeGenerator, { Triplet, Rotation, Axis } from '../PipeGenerator'; // eslint-disable-line no-unused-vars
+import lodash from 'lodash';
+/* eslint-disable no-unused-vars */
+import PipeGenerator, {
+	RotationDirection,
+	Triplet,
+	Rotation,
+	Axis,
+} from '../PipeGenerator';
+/* eslint-enable no-unused-vars */
 
 /**
  * Perform the operation matrix vector multiplication Ax
@@ -29,5 +37,57 @@ describe('PipeGenerator', () => {
 		rotatedCoordinate.forEach((component: number, index: number) => {
 			assert.closeTo(component, expected[index], 0.001, `Component ${index} does not match`);
 		});
+	});
+
+	it('should call its selector function once per pipe', () => {
+		let numCalls = 0;
+		const generator = new PipeGenerator((directions: RotationDirection[]): RotationDirection => {
+			numCalls++;
+			return directions[0];
+		});
+
+		assert.equal(numCalls, 0);
+		generator.generatePipeDirections(8, 90);
+		assert.equal(numCalls, 8);
+	});
+
+	it('should use the directions suggested by the selector', () => {
+		const selectedDirections: RotationDirection[] = [];
+		const generator = new PipeGenerator((directions: RotationDirection[]): RotationDirection => {
+			const direction = directions[0];
+			selectedDirections.push(direction);
+
+			return direction;
+		});
+
+		const generatedRotations = generator.generatePipeDirections(3, 90);
+		lodash.zip(selectedDirections, generatedRotations).forEach((directions: [RotationDirection, Rotation]) => {
+			const [selectedDirection, generatedRotation] = directions;
+			assert.equal(generatedRotation.axis, selectedDirection.axis);
+			assert.equal(generatedRotation.angle, selectedDirection.polarity * 90);
+		});
+	});
+
+	it('should not pass a rotation to the selector that would allow a double-back', () => {
+		const directionLists = [];
+		const generator = new PipeGenerator((directions: RotationDirection[]): RotationDirection => {
+			directionLists.push(directions.slice());
+
+			return directions[0];
+		});
+
+
+		const generatedRotations = generator.generatePipeDirections(2, 90);
+		const missingDirections = lodash.differenceWith(directionLists[0], directionLists[1], lodash.isEqual);
+		// Assert that one direction is in the first list but not the second.
+		assert.lengthOf(missingDirections, 1);
+
+		const forbiddenDirection: RotationDirection = {
+			axis: generatedRotations[0].axis,
+			polarity: -1 * Math.sign(generatedRotations[0].axis),
+		};
+
+		// Assert that the missing element was the opposite of the first one.
+		assert.deepEqual(missingDirections[0], forbiddenDirection);
 	});
 });
