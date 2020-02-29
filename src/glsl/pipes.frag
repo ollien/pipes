@@ -3,6 +3,7 @@ precision mediump float;
 #endif
 
 #pragma glslify: import('./vendor/hg_sdf.glsl')
+#pragma glslify: orenNayar = require(glsl-diffuse-oren-nayar)
 
 // GL_ES uses IEEE754 floats, where this is the maximum
 #define FLOAT_MAX 3.402823466e+38
@@ -18,6 +19,9 @@ precision mediump float;
 
 // The number of directions that will be passed to this shader.
 #define NUM_DIRECTIONS 32
+
+#define SURFACE_ROUGHNESS 0.6
+#define SURFACE_ALBEDO 1.
 
 uniform vec2 resolution;
 uniform float time;
@@ -97,17 +101,17 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 /**
  * Perform a raymarching operation from the given origin along the given direction vector.
+ * Returns the normal vector at the struck position.
  */
-vec3 march(vec3 ray_origin, vec3 ray_direction) {
+vec3 get_marched_normal(vec3 ray_origin, vec3 ray_direction) {
 	float depth = 0.;
-	vec3 centered_ray_direction = normalize(vec3(ray_direction.xy, ray_direction.z));
 	// Rotate the ray direction to look at the ray origin
-	vec3 rotated_ray_direction = (viewMatrix(ray_origin, vec3(0.), vec3(0., 1., 0.)) * vec4(centered_ray_direction, 1.)).xyz;
+	vec3 rotated_ray_direction = (viewMatrix(ray_origin, vec3(0.), vec3(0., 1., 0.)) * vec4(normalize(ray_direction), 1.)).xyz;
 	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
 		vec3 ray_position = ray_origin - depth * rotated_ray_direction;
 		float sdf_distance = pipes_sdf(ray_position);
 		if (sdf_distance < MARCH_HIT_THRESHOLD) {
-			return abs(pipe_normal(ray_position));
+			return pipe_normal(ray_position);
 		}
 
 		depth += sdf_distance;
@@ -121,6 +125,22 @@ vec3 march(vec3 ray_origin, vec3 ray_direction) {
 	return vec3(0.);
 }
 
+/**
+ * Shade the surface normal with an oren nayer diffusion.
+ */
+float light_pipe_normal(vec3 observation_point, vec3 light_position, vec3 surface_normal) {
+	vec3 observation_direction = normalize(observation_point);
+	vec3 light_direction = normalize(light_position);
+
+	return orenNayar(
+		light_direction,
+		observation_direction,
+		surface_normal,
+		SURFACE_ROUGHNESS,
+		SURFACE_ALBEDO
+	);
+}
+
 void main() {
 	vec2 position = gl_FragCoord.xy / resolution;
 	// Our SDF will always consider (0, 0) to be the center, but we consider the center to be (0.5, 0.5).
@@ -128,8 +148,9 @@ void main() {
 	position.xy -= vec2(0.5);
 	vec3 direction = vec3(position, 1.);
 
-	float rot = 28. * 3.14;
 	vec3 observation_point = vec3(10., -10., 10.);
-	vec3 marched_ray = march(observation_point, direction);
-	gl_FragColor = vec4(marched_ray, 1.);
+	vec3 marched_ray_normal = get_marched_normal(observation_point, direction);
+	float lit_result = light_pipe_normal(observation_point, observation_point, marched_ray_normal);
+
+	gl_FragColor = vec4(lit_result * vec3(1., 0., 1.), 1.);
 }
