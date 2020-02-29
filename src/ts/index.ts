@@ -26,7 +26,7 @@ const ROTATION_ANGLE = 90;
 function setCanvasSize(canvas: HTMLCanvasElement): void {
 	const html = document.querySelector('html');
 	/* eslint-disable no-param-reassign */
-	canvas.height = html.clientHeight - 4;
+	canvas.height = html.clientHeight;
 	canvas.width = html.clientWidth;
 	/* eslint-enable no-param-reassign */
 }
@@ -49,7 +49,7 @@ window.addEventListener('load', () => {
 		frag: pipesShaderSource,
 		vert: trianglesShaderSource,
 		uniforms: Object.assign(directionUniforms, {
-			resolution: [canvas.height, canvas.width],
+			resolution: [canvas.width, canvas.height],
 			time: ({ tick }) => tick,
 		}),
 		attributes: {
