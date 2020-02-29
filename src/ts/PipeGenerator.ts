@@ -15,7 +15,7 @@ interface RotationDirection {
 	polarity: number,
 }
 
-type Triplet<T> = [T, T, T];
+export type Triplet<T> = [T, T, T];
 
 export default class PipeGenerator {
 	/**
