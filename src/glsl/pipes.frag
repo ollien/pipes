@@ -16,6 +16,7 @@ precision mediump float;
 #define CYLINDER_RADIUS 0.2
 #define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
 #define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
+#define PIPE_UNION_SOFT_FACTOR 0.004
 
 // The number of directions that will be passed to this shader.
 #define NUM_DIRECTIONS 32
@@ -24,24 +25,42 @@ precision mediump float;
 #define SURFACE_ROUGHNESS 0.6
 #define SURFACE_ALBEDO 1.
 
+// Along the Y axis (2) we will not generate joint spheres
+#define NO_JOINT_AXIS 2
+
+struct Rotation {
+	mat3 matrix;
+	int axis;
+};
+
 uniform vec2 resolution;
 uniform float time;
 uniform sampler2D direction_texture;
 uniform int num_directions;
 
-uniform mat3 direction_matrices[NUM_DIRECTIONS * NUM_PIPES];
+uniform Rotation rotations[NUM_DIRECTIONS * NUM_PIPES];
 uniform vec3 colors[NUM_PIPES];
+
+/**
+ * Makes a sphere to be used as a pipe joint.
+ */
+float makeJointSphere(vec3 pipe_pos, vec3 sphere_offset) {
+	return fSphere(pipe_pos + sphere_offset, SPHERE_RADIUS);
+}
 
 /**
  * A signed distance function that will represent the segments of a pipe in our simulation.
  * Returns the distance from pos to the surface.
  */
-float pipe_segment_sdf(vec3 pos) {
-	float top_sphere = fSphere(vec3(pos.x, pos.y + CYLINDER_HEIGHT, pos.z), SPHERE_RADIUS);
-	float bottom_sphere = fSphere(vec3(pos.x, pos.y - CYLINDER_HEIGHT, pos.z), SPHERE_RADIUS);
-	float spheres = min(top_sphere, bottom_sphere);
+float pipe_segment_sdf(vec3 pos, int axis) {
+	float cylinder = fCylinder(pos, CYLINDER_RADIUS, CYLINDER_HEIGHT);
+	if (axis == NO_JOINT_AXIS) {
+		return cylinder;
+	}
 
-	return fOpUnionSoft(fCylinder(pos, CYLINDER_RADIUS, CYLINDER_HEIGHT), spheres, 0.04);
+	float joiningSphere = makeJointSphere(pos, vec3(0., -CYLINDER_HEIGHT, 0.));
+
+	return fOpUnionSoft(cylinder, joiningSphere, PIPE_UNION_SOFT_FACTOR);
 }
 
 /**
@@ -71,14 +90,17 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 				break;
 			}
 
+			Rotation rotation = rotations[i*NUM_DIRECTIONS + j];
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
-			pipe_pos = direction_matrices[i*NUM_DIRECTIONS + j] * pipe_pos;
+			pipe_pos = rotation.matrix * pipe_pos;
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
-			pipes = min(pipes, pipe_segment_sdf(pipe_pos));
+
+			pipes = min(pipes, pipe_segment_sdf(pipe_pos, rotation.axis));
 		}
 	}
 
-	return pipes;
+	float cappingSphere = makeJointSphere(pipe_pos, vec3(0., CYLINDER_HEIGHT, 0.));
+	return fOpUnionSoft(pipes, cappingSphere, PIPE_UNION_SOFT_FACTOR);
 }
 
 /**

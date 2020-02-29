@@ -59,12 +59,31 @@ function generatePipes(generator: PipeGenerator): Pipe[] {
 
 /**
  * Make the uniforms needed to pass the given array to a shader.
- * @param arr
+ * @param arr The array to pull from
  */
 function makeUniformsForArray<T>(uniformArrayName: string, arr: T[]): { [key: string]: T } {
 	return arr.reduce((reduced, item, index) => {
 		// eslint-disable-next-line no-param-reassign
 		reduced[`${uniformArrayName}[${index}]`] = item;
+
+		return reduced;
+	}, {});
+}
+
+/**
+ * Make the uniforms needed to pass the given array of objects to a shader.
+ * Keys must be of string type so they may be put into a uniform name properly
+ * @param objects The list of objects to pull from.
+ */
+function makeUniformsForObjectArray<T extends { [key: string]: V }, V>(
+	uniformArrayName: string,
+	objects: T[],
+): { [key: string]: T } {
+	return objects.reduce((reduced, item, index) => {
+		Object.keys(item).forEach((property: string) => {
+			// eslint-disable-next-line no-param-reassign
+			reduced[`${uniformArrayName}[${index}].${property}`] = item[property];
+		});
 
 		return reduced;
 	}, {});
@@ -99,7 +118,11 @@ window.addEventListener('load', () => {
 
 	const colors = getObjectPropertyAsArray(pipes, 'color');
 	const rotationLists = getObjectPropertyAsArray(pipes, 'rotations');
-	const uniformRotationMatrices = lodash.flatten(rotationLists).map(convertRotationIntoUniformRotationMatrix);
+	const rotationsUniform = lodash.flatten(rotationLists)
+		.map((rotation: Rotation) => ({
+			axis: rotation.axis,
+			matrix: convertRotationIntoUniformRotationMatrix(rotation),
+		}));
 
 	const renderPipes = regl({
 		frag: pipesShaderSource,
@@ -110,7 +133,7 @@ window.addEventListener('load', () => {
 				resolution: [canvas.width, canvas.height],
 				time: ({ tick }) => tick,
 			},
-			...makeUniformsForArray('direction_matrices', uniformRotationMatrices),
+			...makeUniformsForObjectArray('rotations', rotationsUniform),
 			...makeUniformsForArray('colors', colors),
 		},
 		attributes: {
