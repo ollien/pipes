@@ -10,7 +10,8 @@
 			"ES2015",
 			"ScriptHost"
 		],
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"strict": true
 	},
 	"include": [
 		"src/ts/*.ts",

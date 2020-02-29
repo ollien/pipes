@@ -61,15 +61,24 @@ describe('PipeGenerator', () => {
 		});
 
 		const generatedRotations = generator.generatePipeDirections(3, 90);
-		lodash.zip(selectedDirections, generatedRotations).forEach((directions: [RotationDirection, Rotation]) => {
-			const [selectedDirection, generatedRotation] = directions;
-			assert.equal(generatedRotation.axis, selectedDirection.axis);
-			assert.equal(generatedRotation.angle, selectedDirection.polarity * 90);
-		});
+		lodash.zip(selectedDirections, generatedRotations).forEach(
+			(directions: [RotationDirection|undefined, Rotation|undefined]) => {
+				const [selectedDirection, generatedRotation] = directions;
+				assert.isDefined(selectedDirection);
+				assert.isDefined(generatedRotation);
+
+
+				// We have already asserted these are defined above, TS just doesn't know what the assert means.
+				// @ts-ignore: Object is possibly 'undefined'
+				assert.equal(generatedRotation.axis, selectedDirection.axis);
+				// @ts-ignore: Object is possibly 'undefined'
+				assert.equal(generatedRotation.angle, selectedDirection.polarity * 90);
+			},
+		);
 	});
 
 	it('should not pass a rotation to the selector that would allow a double-back', () => {
-		const directionLists = [];
+		const directionLists: RotationDirection[][] = [];
 		const generator = new PipeGenerator((directions: RotationDirection[]): RotationDirection => {
 			directionLists.push(directions.slice());
 

@@ -31,7 +31,8 @@ interface Pipe {
  * @param canvas The canvas to resize
  */
 function setCanvasSize(canvas: HTMLCanvasElement): void {
-	const html = document.querySelector('html');
+	// Explicitly casting, as there will always be an HTML document so we don't care about the case of it being null.
+	const html = <HTMLElement>document.querySelector('html');
 	/* eslint-disable no-param-reassign */
 	canvas.height = html.clientHeight;
 	canvas.width = html.clientWidth;
@@ -62,7 +63,7 @@ function generatePipes(generator: PipeGenerator): Pipe[] {
  * @param arr The array to pull from
  */
 function makeUniformsForArray<T>(uniformArrayName: string, arr: T[]): { [key: string]: T } {
-	return arr.reduce((reduced, item, index) => {
+	return arr.reduce((reduced: { [key: string]: T }, item: T, index: number) => {
 		// eslint-disable-next-line no-param-reassign
 		reduced[`${uniformArrayName}[${index}]`] = item;
 
@@ -78,8 +79,8 @@ function makeUniformsForArray<T>(uniformArrayName: string, arr: T[]): { [key: st
 function makeUniformsForObjectArray<T extends { [key: string]: V }, V>(
 	uniformArrayName: string,
 	objects: T[],
-): { [key: string]: T } {
-	return objects.reduce((reduced, item, index) => {
+): { [key: string]: V } {
+	return objects.reduce((reduced: { [key: string]: V}, item: T, index: number) => {
 		Object.keys(item).forEach((property: string) => {
 			// eslint-disable-next-line no-param-reassign
 			reduced[`${uniformArrayName}[${index}].${property}`] = item[property];
@@ -109,7 +110,11 @@ function convertRotationIntoUniformRotationMatrix(rotation: Rotation): number[] 
 }
 
 window.addEventListener('load', () => {
-	const canvas = <HTMLCanvasElement>document.getElementById('gl');
+	const canvas = <HTMLCanvasElement|null>document.getElementById('gl');
+	if (canvas === null) {
+		throw Error('No gl canvas available in document.');
+	}
+
 	setCanvasSize(canvas);
 	const regl = reglModule(canvas);
 
