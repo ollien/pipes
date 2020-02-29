@@ -8,9 +8,9 @@ precision mediump float;
 // GL_ES uses IEEE754 floats, where this is the maximum
 #define FLOAT_MAX 3.402823466e+38
 
-#define MAX_MARCHING_STEPS 512
-#define MAX_MARCHING_DISTANCE 1000.
-#define MARCH_HIT_THRESHOLD 0.001
+#define MAX_MARCHING_STEPS 128
+#define MAX_MARCHING_DISTANCE 100.
+#define MARCH_HIT_THRESHOLD 0.01
 #define NORMAL_DELTA 0.001
 
 #define CYLINDER_RADIUS 0.2
