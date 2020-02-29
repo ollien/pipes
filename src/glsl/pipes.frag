@@ -57,6 +57,10 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 	float pipes = FLOAT_MAX;
 
 	for (int i = 0; i < NUM_DIRECTIONS * NUM_PIPES; i++) {
+		if (float(i) > time) {
+			break;
+		}
+
 		// HACK: Because we cannot use num_pipes in an array index expression, we must continue/break if we aren't
 		// in the right range.
 		if (i < NUM_DIRECTIONS * pipe_id) {
