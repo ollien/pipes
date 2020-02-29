@@ -1,9 +1,9 @@
 import lodash from 'lodash';
 import colorConvert from 'color-convert';
-import reglModule, { Regl, Texture2D } from 'regl'; // eslint-disable-line no-unused-vars
+import reglModule from 'regl'; // eslint-disable-line no-unused-vars
 import pipesShaderSource from '@shader/pipes.frag'; // eslint-disable-line import/no-unresolved
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
-import PipeGenerator, { Triplet } from './PipeGenerator';
+import PipeGenerator, { Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
 
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
@@ -22,7 +22,7 @@ const COLOR_LIGHTNESS = 55;
 
 interface Pipe {
 	color: Triplet<number>,
-	rotations: Triplet<Triplet<number>>[],
+	rotations: Rotation[],
 }
 
 /**
@@ -70,6 +70,25 @@ function makeUniformsForArray<T>(uniformArrayName: string, arr: T[]): { [key: st
 	}, {});
 }
 
+/**
+ * Get all of a single property as an array
+ * e.g. getObjectPropertyAsArray([{a: 5}, {a: 6}], 'a') => [5, 6]
+ *
+ * @param objects The objects to pull from
+ */
+function getObjectPropertyAsArray<T, K extends keyof T>(objects: T[], key: K): T[K][] {
+	return objects.reduce((memo: T[K][], value: T): T[K][] => [...memo, value[key]], []);
+}
+
+/**
+ * Convert a rotation into a flattened rotation matrices, suitable for use when passing to a uniform.
+ *
+ * @param rotations The list of rotations to generate rotation matrices for
+ */
+function convertRotationIntoUniformRotationMatrix(rotation: Rotation): number[] {
+	return lodash.flatten(PipeGenerator.getRotationMatrix(rotation));
+}
+
 window.addEventListener('load', () => {
 	const canvas = <HTMLCanvasElement>document.getElementById('gl');
 	setCanvasSize(canvas);
@@ -78,12 +97,9 @@ window.addEventListener('load', () => {
 	const pipeGenerator = new PipeGenerator();
 	const pipes = generatePipes(pipeGenerator);
 
-	const colors = pipes.reduce((list: Triplet<number>, pipe: Pipe) => [...list, pipe.color], []);
-	const directionMatrices = pipes.reduce(
-		(list: Triplet<Triplet<number>>[], pipe: Pipe) => [...list, ...pipe.rotations],
-		[],
-	).map((matrix: Triplet<Triplet<number>>): number[] => lodash.flatten(matrix));
-
+	const colors = getObjectPropertyAsArray(pipes, 'color');
+	const rotationLists = getObjectPropertyAsArray(pipes, 'rotations');
+	const uniformRotationMatrices = lodash.flatten(rotationLists).map(convertRotationIntoUniformRotationMatrix);
 
 	const renderPipes = regl({
 		frag: pipesShaderSource,
@@ -94,7 +110,7 @@ window.addEventListener('load', () => {
 				resolution: [canvas.width, canvas.height],
 				time: ({ tick }) => tick,
 			},
-			...makeUniformsForArray('direction_matrices', directionMatrices),
+			...makeUniformsForArray('direction_matrices', uniformRotationMatrices),
 			...makeUniformsForArray('colors', colors),
 		},
 		attributes: {

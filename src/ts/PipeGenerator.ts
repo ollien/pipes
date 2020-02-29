@@ -63,7 +63,7 @@ export default class PipeGenerator {
 	 * Get the rotation matrix for the given rotation.
 	 * @param rotation
 	 */
-	getRotationMatrix(rotation: Rotation): Triplet<Triplet<number>> {
+	static getRotationMatrix(rotation: Rotation): Triplet<Triplet<number>> {
 		const angleRads = PipeGenerator.degreesToRadians(rotation.angle);
 		const sinValue = Math.sin(angleRads);
 		const cosValue = Math.cos(angleRads);

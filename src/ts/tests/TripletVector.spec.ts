@@ -22,8 +22,7 @@ describe('PipeGenerator', () => {
 	it('should return the proper rotation matrix for a given rotation', () => {
 		const rotation: Rotation = { axis: Axis.Z, angle: 45 };
 		const coordinate: Triplet<number> = [1, 2, 3];
-		const generator = new PipeGenerator();
-		const rotationMatrix = generator.getRotationMatrix(rotation);
+		const rotationMatrix = PipeGenerator.getRotationMatrix(rotation);
 
 		const rotatedCoordinate = multiplyVectorByMatrix(rotationMatrix, coordinate);
 		const expected = [-0.7071, 2.1213, 3];
