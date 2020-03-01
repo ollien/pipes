@@ -35,8 +35,6 @@ struct Rotation {
 
 uniform vec2 resolution;
 uniform float time;
-uniform sampler2D direction_texture;
-uniform int num_directions;
 
 uniform Rotation rotations[NUM_TURNS * NUM_PIPES];
 uniform vec3 colors[NUM_PIPES];
