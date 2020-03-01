@@ -99,4 +99,13 @@ describe('PipeGenerator', () => {
 		// Assert that the missing element was the opposite of the first one.
 		assert.deepEqual(missingDirections[0], forbiddenDirection);
 	});
+
+	it('should not allow you to return a rotation from your selector that was not passed to it', () => {
+		const generator = new PipeGenerator(
+			// Polarity is only ever expected to be 1 or -1, so this will never be in the list.
+			(): RotationDirection => ({ axis: Axis.X, polarity: -50 }),
+		);
+
+		assert.throws(() => generator.generatePipeDirections(5, 90));
+	});
 });

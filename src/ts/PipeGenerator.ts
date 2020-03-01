@@ -25,14 +25,14 @@ export interface Rotation {
 }
 
 export default class PipeGenerator {
-	private readonly selector: (directions: RotationDirection[]) => RotationDirection;
+	private readonly directionSelector: (directions: RotationDirection[]) => RotationDirection;
 
 	/**
-	 * @param selector A function to select a rotation direction from a list of possibilities.
+	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
 	 *                 Defaults to a function that selects a ranodom direction.
 	 */
-	constructor(selector?: (directions: RotationDirection[]) => RotationDirection) {
-		this.selector = selector == null ? PipeGenerator.getRandomArrayElement : selector;
+	constructor(directionSelector?: (directions: RotationDirection[]) => RotationDirection) {
+		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
 	}
 
 	/**
@@ -61,7 +61,12 @@ export default class PipeGenerator {
 				return !lodash.isEqual(rotation, forbiddenDirection);
 			});
 
-			const direction: RotationDirection = this.selector(rotationPossibilities);
+			const direction: RotationDirection = this.directionSelector(rotationPossibilities);
+			// Check if the direction given is contained within the possible rotations.
+			if (possibleRotations.find((item: RotationDirection) => lodash.isEqual(item, direction)) == null) {
+				throw Error('Invalid direction returned from direction selector.');
+			}
+
 			lastDirection = direction;
 
 			return { axis: direction.axis, angle: direction.polarity * rotationAngle };
