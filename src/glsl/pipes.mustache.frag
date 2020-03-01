@@ -1,3 +1,5 @@
+// Please note: This shader will not work standalone, as certain constants are compiled in using Mustache
+
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -19,14 +21,14 @@ precision mediump float;
 #define PIPE_UNION_SOFT_FACTOR 0.004
 
 // The number of directions that will be passed to this shader.
-#define NUM_TURNS 32
-#define NUM_PIPES 4
+#define NUM_TURNS {{ numTurns }}
+#define NUM_PIPES {{ numPipes }}
 
 #define SURFACE_ROUGHNESS 0.6
 #define SURFACE_ALBEDO 1.
 
-// Along the Y axis (2) we will not generate joint spheres
-#define NO_JOINT_AXIS 2
+// Along the Y axis we will not generate joint spheres
+#define NO_JOINT_AXIS {{ yAxis }}
 
 struct Rotation {
 	mat3 matrix;

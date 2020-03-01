@@ -1,9 +1,10 @@
-import lodash from 'lodash';
 import colorConvert from 'color-convert';
+import lodash from 'lodash';
+import mustache from 'mustache';
 import reglModule from 'regl'; // eslint-disable-line no-unused-vars
-import pipesShaderSource from '@shader/pipes.frag'; // eslint-disable-line import/no-unresolved
+import pipesShaderSource from '@shader/pipes.mustache.frag'; // eslint-disable-line import/no-unresolved
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
-import PipeGenerator, { Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
+import PipeGenerator, { Axis, Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
 
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
@@ -23,6 +24,19 @@ const COLOR_LIGHTNESS = 55;
 interface Pipe {
 	color: Triplet<number>,
 	rotations: Rotation[],
+}
+
+interface PipesShaderParameters {
+	numTurns: number,
+	numPipes: number,
+	yAxis: Axis,
+}
+
+/**
+ * Compile the source code of the pipes shader with the given parameters
+ */
+function compilePipesShaderSource(properties: PipesShaderParameters): string {
+	return mustache.render(pipesShaderSource, properties);
 }
 
 /**
@@ -116,7 +130,14 @@ window.addEventListener('load', () => {
 	}
 
 	setCanvasSize(canvas);
+
 	const regl = reglModule(canvas);
+	const compiledPipesShaderSource: string = compilePipesShaderSource({
+		numTurns: NUM_PIPE_TURNS,
+		numPipes: NUM_PIPES,
+		yAxis: Axis.Y,
+	});
+
 
 	const pipeGenerator = new PipeGenerator();
 	const pipes = generatePipes(pipeGenerator);
@@ -130,7 +151,7 @@ window.addEventListener('load', () => {
 		}));
 
 	const renderPipes = regl({
-		frag: pipesShaderSource,
+		frag: compiledPipesShaderSource,
 		vert: trianglesShaderSource,
 		uniforms: {
 			num_pipes: pipes.length,
