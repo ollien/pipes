@@ -1,3 +1,4 @@
+import colorConvert from 'color-convert';
 import lodash from 'lodash';
 
 // Axis represents an axis that a pipe can travel along
@@ -25,14 +26,34 @@ export interface Rotation {
 }
 
 export default class PipeGenerator {
+	private static readonly COLOR_SATURATION = 100;
+	private static readonly COLOR_LIGHTNESS = 55;
+
 	private readonly directionSelector: (directions: RotationDirection[]) => RotationDirection;
+	private readonly hueSelector: () => number;
 
 	/**
 	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
-	 *                 Defaults to a function that selects a ranodom direction.
+	 *                          Defaults to a function that selects a random direction.
+	 * @param hueSelector A function to select a hue. Should return a value in [0, 360].
+	 * 					  Defaults to a function that selects a random hue.
 	 */
-	constructor(directionSelector?: (directions: RotationDirection[]) => RotationDirection) {
+	constructor(
+		directionSelector?: (directions: RotationDirection[]) => RotationDirection,
+		hueSelector? : () => number,
+	) {
 		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
+		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
+	}
+
+	/**
+	 * Generate a random color, as a triplet of rgb values between 0 and 1.
+	 */
+	generateColor(): Triplet<number> {
+		const hueValue = this.hueSelector();
+		const rgb = colorConvert.hsl.rgb([hueValue, PipeGenerator.COLOR_SATURATION, PipeGenerator.COLOR_LIGHTNESS]);
+
+		return <Triplet<number>> rgb.map((channel: number): number => channel / 255);
 	}
 
 	/**
@@ -100,6 +121,13 @@ export default class PipeGenerator {
 		};
 
 		return rotationMatrices[rotation.axis];
+	}
+
+	/**
+	 * Generates a random hue
+	 */
+	private static generateRandomHue(): number {
+		return Math.random() * 360;
 	}
 
 	/**

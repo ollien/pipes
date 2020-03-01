@@ -3,6 +3,7 @@
 import { assert } from 'chai';
 import 'mocha';
 import lodash from 'lodash';
+import colorConvert from 'color-convert';
 /* eslint-disable no-unused-vars */
 import PipeGenerator, {
 	RotationDirection,
@@ -107,5 +108,22 @@ describe('PipeGenerator', () => {
 		);
 
 		assert.throws(() => generator.generatePipeDirections(5, 90));
+	});
+
+	it('should use the hue supplied when generating a color', () => {
+		const pipeGenerator = new PipeGenerator(undefined, () => 180);
+		const generatedColor = pipeGenerator.generateColor();
+		const hslGeneratedColor = colorConvert.rgb.hsl(generatedColor);
+
+		assert.equal(hslGeneratedColor[0], 180);
+	});
+
+	it('should always have a constant saturation and lightness between runs', () => {
+		const pipeGenerator = new PipeGenerator(undefined, () => 180);
+		const generatedColors = Array(2).fill(0).map(() => pipeGenerator.generateColor());
+		const hslGeneratedColors = generatedColors.map(colorConvert.rgb.hsl);
+
+		assert.equal(hslGeneratedColors[0][1], hslGeneratedColors[1][1]);
+		assert.equal(hslGeneratedColors[0][2], hslGeneratedColors[1][2]);
 	});
 });
