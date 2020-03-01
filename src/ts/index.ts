@@ -133,11 +133,9 @@ window.addEventListener('load', () => {
 		frag: pipesShaderSource,
 		vert: trianglesShaderSource,
 		uniforms: {
-			...{
-				num_pipes: pipes.length,
-				resolution: [canvas.width, canvas.height],
-				time: ({ tick }) => tick,
-			},
+			num_pipes: pipes.length,
+			resolution: [canvas.width, canvas.height],
+			time: ({ tick }) => tick,
 			...makeUniformsForObjectArray('rotations', rotationsUniform),
 			...makeUniformsForArray('colors', colors),
 		},
