@@ -19,7 +19,7 @@ precision mediump float;
 #define PIPE_UNION_SOFT_FACTOR 0.004
 
 // The number of directions that will be passed to this shader.
-#define NUM_DIRECTIONS 32
+#define NUM_TURNS 32
 #define NUM_PIPES 4
 
 #define SURFACE_ROUGHNESS 0.6
@@ -38,7 +38,7 @@ uniform float time;
 uniform sampler2D direction_texture;
 uniform int num_directions;
 
-uniform Rotation rotations[NUM_DIRECTIONS * NUM_PIPES];
+uniform Rotation rotations[NUM_TURNS * NUM_PIPES];
 uniform vec3 colors[NUM_PIPES];
 
 /**
@@ -85,14 +85,14 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 			break;
 		}
 
-		for (int j = 0; j < NUM_DIRECTIONS; j++) {
+		for (int j = 0; j < NUM_TURNS; j++) {
 			// Don't display a pipe until it's time to - this produces the "draw-in" effect of the pipes
-			if (float(i*NUM_DIRECTIONS + j) > time) {
+			if (float(i*NUM_TURNS + j) > time) {
 				break;
 			}
 
 			drawn = true;
-			Rotation rotation = rotations[i*NUM_DIRECTIONS + j];
+			Rotation rotation = rotations[i*NUM_TURNS + j];
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
 			pipe_pos = rotation.matrix * pipe_pos;
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
