@@ -10,16 +10,6 @@ precision mediump float;
 // GL_ES uses IEEE754 floats, where this is the maximum
 #define FLOAT_MAX 3.402823466e+38
 
-#define MAX_MARCHING_STEPS 128
-#define MAX_MARCHING_DISTANCE 100.
-#define MARCH_HIT_THRESHOLD 0.01
-#define NORMAL_DELTA 0.001
-
-#define CYLINDER_RADIUS 0.2
-#define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
-#define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
-#define PIPE_UNION_SOFT_FACTOR 0.004
-
 // The number of directions that will be passed to this shader.
 #define NUM_TURNS {{ numTurns }}
 #define NUM_PIPES {{ numPipes }}
@@ -29,6 +19,18 @@ precision mediump float;
 
 // Along the Y axis we will not generate joint spheres
 #define NO_JOINT_AXIS {{ yAxis }}
+
+#define CYLINDER_RADIUS 0.2
+#define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
+#define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
+#define PIPE_UNION_SOFT_FACTOR 0.004
+
+// In the worst case, we will have NUM_TURNS pipes going backwards, and one pipe length is (CYLINDER_HEIGHT + 2*SPHERE_RADIUS)
+// We multiply this the number of turns, and a factor of safety of 1.25
+#define MAX_MARCHING_DISTANCE 1.25*(CYLINDER_HEIGHT + 2.*SPHERE_RADIUS) * float(NUM_TURNS)
+#define MAX_MARCHING_STEPS 128
+#define MARCH_HIT_THRESHOLD 0.01
+#define NORMAL_DELTA 0.001
 
 struct Rotation {
 	mat3 matrix;
