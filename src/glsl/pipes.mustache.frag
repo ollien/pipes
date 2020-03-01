@@ -23,7 +23,7 @@ precision mediump float;
 #define CYLINDER_RADIUS 0.2
 #define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
 #define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
-#define PIPE_UNION_SOFT_FACTOR 0.004
+#define PIPE_UNION_SOFT_FACTOR 0.05
 
 // In the worst case, we will have NUM_TURNS pipes going backwards, and one pipe length is (CYLINDER_HEIGHT + 2*SPHERE_RADIUS)
 // We multiply this the number of turns, and a factor of safety of 1.25
