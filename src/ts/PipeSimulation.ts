@@ -72,7 +72,7 @@ export default class PipeSimulation {
 			numPipes: this.pipes.length,
 		});
 
-		const uniformRotations = this.generateRotationsForUniform();
+		const uniformRotations = this.convertRotationsForUniform();
 		const colorsUniform = uniformUtil.getObjectPropertyAsArray(this.pipes, 'color');
 		const startingPositionsUniform = uniformUtil.getObjectPropertyAsArray(this.pipes, 'startingPosition');
 
@@ -118,7 +118,7 @@ export default class PipeSimulation {
 	/**
 	 * Generate the rotations uniform for the pipes in the simulation
 	 */
-	private generateRotationsForUniform(): RotationUniform[] {
+	private convertRotationsForUniform(): RotationUniform[] {
 		// eslint-disable-next-line arrow-body-style
 		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
 			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
