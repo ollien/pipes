@@ -21,6 +21,8 @@ export function degreesToRadians(angle: number): number {
 	return angle * (Math.PI / 180);
 }
 
+// TODO: This may not be what we want. We want some way for pipes to rotate in place. Need to futz.
+//       Currently this rotates fully about the origin but since we're tracking pipes, we really need to rotate those pipes in place.
 export function generateTrailFromRotations(
 	startingPoint: Triplet<number>,
 	rotations: SpatialRotation[],
