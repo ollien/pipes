@@ -29,9 +29,9 @@ export default class PipeGenerator {
 	private static readonly COLOR_SATURATION = 100;
 	private static readonly COLOR_LIGHTNESS = 55;
 
-	private readonly directionSelector: (directions: RotationDirection[]) => RotationDirection;
-	private readonly hueSelector: () => number;
-	private readonly positionSelector: (forbidden: Triplet<number>[]) => Triplet<number>;
+	private directionSelector!: (directions: RotationDirection[]) => RotationDirection;
+	private hueSelector!: () => number;
+	private positionSelector!: (forbidden: Triplet<number>[]) => Triplet<number>;
 
 	/**
 	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
@@ -46,9 +46,9 @@ export default class PipeGenerator {
 		hueSelector?: () => number,
 		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
 	) {
-		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
-		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
-		this.positionSelector = positionSelector == null ? PipeGenerator.generateRandomPosition : positionSelector;
+		this.setDirectionSelector(directionSelector);
+		this.setHueSelector(hueSelector);
+		this.setPositionSelector(positionSelector);
 	}
 
 	/**
@@ -113,6 +113,30 @@ export default class PipeGenerator {
 	}
 
 	/**
+	 * Set the direction selector
+	 * @param directionSelector The direction selector to use
+	 */
+	setDirectionSelector(directionSelector?: (directions: RotationDirection[]) => RotationDirection): void {
+		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
+	}
+
+	/**
+	 * Set the hue selector
+	 * @param hueSelector The hue selector to use
+	 */
+	setHueSelector(hueSelector?: () => number): void {
+		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
+	}
+
+	/**
+	 * Set the position selector
+	 * @param positionSelector The position selector to use
+	 */
+	setPositionSelector(positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>): void {
+		this.positionSelector = positionSelector == null ? PipeGenerator.generateRandomPosition : positionSelector;
+	}
+
+	/**
 	 * Generates a random hue
 	 */
 	private static generateRandomHue(): number {
@@ -143,7 +167,6 @@ export default class PipeGenerator {
 
 	/**
 	 * Get a random item from an array
-	 *
 	 * @param arr
 	 */
 	private static getRandomArrayElement<T>(arr: T[]): T {
