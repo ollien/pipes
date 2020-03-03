@@ -1,6 +1,7 @@
 import reglModule from 'regl'; // eslint-disable-line no-unused-vars
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
-import PipeGenerator, { Axis, Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
+import PipeGenerator, { Axis, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
+import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 import PipeSimulation from './PipeSimulation';
 
 const NUM_PIPES = 4;

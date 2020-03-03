@@ -2,8 +2,9 @@ import { DrawCommand, Regl } from 'regl'; // eslint-disable-line no-unused-vars
 import mustache from 'mustache';
 import lodash from 'lodash';
 import pipesShaderSource from '@shader/pipes.mustache.frag'; // eslint-disable-line import/no-unresolved
-import PipeGenerator, { Axis, Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
+import PipeGenerator, { Axis, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import * as uniformUtil from './uniformUtil';
+import { SpatialRotation, Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 
 type Nonuplet<T> = [T, T, T, T, T, T, T, T, T];
 
@@ -14,16 +15,6 @@ interface RenderablePipe {
 	color: Triplet<number>,
 	startingPosition: Triplet<number>,
 	rotations: Rotation[],
-}
-
-/**
- * Represents the items needed for a rotation uniform.
- */
-interface RotationUniform {
-	// Represents an axis as a a component of a vector, with 1 being along that axis, 0 otherwise.
-	axis: Triplet<number>,
-	// Represents the angle in degrees
-	angle: number,
 }
 
 /**
@@ -118,10 +109,10 @@ export default class PipeSimulation {
 	/**
 	 * Generate the rotations uniform for the pipes in the simulation
 	 */
-	private convertRotationsForUniform(): RotationUniform[] {
+	private convertRotationsForUniform(): SpatialRotation[] {
 		// eslint-disable-next-line arrow-body-style
 		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
-			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
+			return pipe.rotations.map((rotation: Rotation): SpatialRotation => ({
 				axis: PipeSimulation.convertAxisToTriplet(rotation.axis),
 				angle: rotation.angle,
 			}));

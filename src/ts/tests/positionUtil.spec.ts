@@ -2,7 +2,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert } from 'chai';
 import 'mocha';
-import { Triplet } from '../PipeGenerator'; // eslint-disable-line no-unused-vars
+import { Triplet } from '../positionUtil'; // eslint-disable-line no-unused-vars
 import * as positionUtil from '../positionUtil';
 
 describe('positionUtil', () => {
@@ -31,7 +31,7 @@ describe('positionUtil', () => {
 			[1, 1, 0],
 		];
 		actualPath.forEach((_, stepIndex: number) => {
-			actualPath[stepIndex].forEach((_, componentIndex: number) => {
+			actualPath[stepIndex].forEach((__, componentIndex: number) => {
 				const actual = actualPath[stepIndex][componentIndex];
 				const expected = expectedPath[stepIndex][componentIndex];
 				assert.closeTo(

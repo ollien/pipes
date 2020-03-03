@@ -1,10 +1,10 @@
 // @ts-ignore There are no definitions for quaternion
 import Quaternion from 'quaternion';
-import { Triplet } from './PipeGenerator'; // eslint-disable-line no-unused-vars
+
+export type Triplet<T> = [T, T, T];
 
 /**
  * Represents the items needed for a rotation in 3D space.
- * TODO: Make this the standard in PipeSimulation as well
  */
 export interface SpatialRotation {
 	// Represents an axis as a a component of a vector, with 1 being along that axis, 0 otherwise.
