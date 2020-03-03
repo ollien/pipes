@@ -42,6 +42,7 @@ uniform float time;
 
 uniform Rotation rotations[NUM_TURNS * NUM_PIPES];
 uniform vec3 colors[NUM_PIPES];
+uniform vec3 starting_positions[NUM_PIPES];
 
 /**
  * Makes a sphere to be used as a pipe joint.
@@ -74,6 +75,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 	// Think of it as a virtual "pipe axis." No rotation can be about the y axis, as it would not actually perform
 	// a pipe pivot.
 	vec3 growth_vector = vec3(0., 1., 0.);
+	vec3 pipe_starting_pos = vec3(0.);
 	vec3 pipe_pos = pos;
 	float pipes = FLOAT_MAX;
 	bool drawn = false;
@@ -87,6 +89,9 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 			break;
 		}
 
+		// This should only run once per pipe.
+		pipe_starting_pos = starting_positions[i];
+		pipe_pos += pipe_starting_pos;
 		for (int j = 0; j < NUM_TURNS; j++) {
 			// Don't display a pipe until it's time to - this produces the "draw-in" effect of the pipes
 			if (float(i*NUM_TURNS + j) > time) {
@@ -111,7 +116,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 	}
 
 	float cappingSphere = min(
-		makeJointSphere(pos, vec3(0., CYLINDER_HEIGHT, 0.)),
+		makeJointSphere(pos + pipe_starting_pos, vec3(0., CYLINDER_HEIGHT, 0.)),
 		makeJointSphere(pipe_pos, vec3(0., CYLINDER_HEIGHT, 0.))
 	);
 

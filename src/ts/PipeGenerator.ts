@@ -31,19 +31,37 @@ export default class PipeGenerator {
 
 	private readonly directionSelector: (directions: RotationDirection[]) => RotationDirection;
 	private readonly hueSelector: () => number;
+	private readonly positionSelector: (forbidden: Triplet<number>[]) => Triplet<number>;
 
 	/**
 	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
 	 *                          Defaults to a function that selects a random direction.
 	 * @param hueSelector A function to select a hue. Should return a value in [0, 360].
 	 * 					  Defaults to a function that selects a random hue.
+	 * @param positionSelector A function to select a position in space, omitting the forbidden positions given.
+	 * 						   Defaults to a function that selects a random position between -10 and 10 on each axis.
 	 */
 	constructor(
 		directionSelector?: (directions: RotationDirection[]) => RotationDirection,
-		hueSelector? : () => number,
+		hueSelector?: () => number,
+		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
 	) {
 		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
 		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
+		this.positionSelector = positionSelector == null ? PipeGenerator.generateRandomPosition : positionSelector;
+	}
+
+	/**
+	 * Generate a position in space
+	 */
+	generatePosition(forbidden?: Triplet<number>[]): Triplet<number> {
+		const forbiddenPositions = forbidden == null ? [] : forbidden;
+		const selected = this.positionSelector(forbiddenPositions);
+		if (lodash.some(forbiddenPositions, (item: Triplet<number>) => lodash.isEqual(selected, item))) {
+			throw Error('Selected item was in the forbidden list');
+		}
+
+		return selected;
 	}
 
 	/**
@@ -128,6 +146,28 @@ export default class PipeGenerator {
 	 */
 	private static generateRandomHue(): number {
 		return Math.random() * 360;
+	}
+
+	/**
+	 * Generate a random position in space between -10 and 10 on each component
+	 */
+	private static generateRandomPosition(forbiddenPositions: Triplet<number>[]): Triplet<number> {
+		const min = -3;
+		const max = 3;
+
+		let possiblePositions: Triplet<number>[] = [];
+		for (let i = min; i <= max; i++) {
+			for (let j = min; j <= max; j++) {
+				for (let k = min; k <= max; k++) {
+					const position: Triplet<number> = [i, j, k];
+					possiblePositions.push(position);
+				}
+			}
+		}
+
+		possiblePositions = lodash.differenceWith(possiblePositions, forbiddenPositions, lodash.isEqual);
+
+		return possiblePositions[Math.floor(Math.random()) * possiblePositions.length];
 	}
 
 	/**

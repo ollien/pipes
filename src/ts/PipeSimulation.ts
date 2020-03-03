@@ -12,6 +12,7 @@ type Nonuplet<T> = [T, T, T, T, T, T, T, T, T];
  */
 interface RenderablePipe {
 	color: Triplet<number>,
+	startingPosition: Triplet<number>,
 	rotations: Rotation[],
 }
 
@@ -74,6 +75,7 @@ export default class PipeSimulation {
 
 		const uniformRotations = this.generateRotationsForUniform();
 		const colorsUniform = uniformUtil.getObjectPropertyAsArray(this.pipes, 'color');
+		const startingPositionsUniform = uniformUtil.getObjectPropertyAsArray(this.pipes, 'startingPosition');
 
 		return this.regl({
 			frag: compiledPipesShaderSource,
@@ -81,6 +83,7 @@ export default class PipeSimulation {
 				time: ({ tick }) => tick,
 				...uniformUtil.makeUniformsForArray('colors', colorsUniform),
 				...uniformUtil.makeUniformsForObjectArray('rotations', uniformRotations),
+				...uniformUtil.makeUniformsForArray('starting_positions', startingPositionsUniform),
 			},
 		});
 	}
@@ -90,10 +93,17 @@ export default class PipeSimulation {
 	 * @param numPipes The number of pipes to generate
 	 */
 	private generatePipes(numPipes: number): RenderablePipe[] {
-		return Array(numPipes).fill(0).map((): RenderablePipe => ({
-			rotations: this.generatePipeRotations(),
-			color: this.pipeGenerator.generateColor(),
-		}));
+		const usedPositions: Triplet<number>[] = [];
+		return Array(numPipes).fill(0).map((): RenderablePipe => {
+			const position = this.pipeGenerator.generatePosition(usedPositions);
+			usedPositions.push(position);
+
+			return {
+				rotations: this.generatePipeRotations(),
+				color: this.pipeGenerator.generateColor(),
+				startingPosition: position,
+			};
+		});
 	}
 
 	/**

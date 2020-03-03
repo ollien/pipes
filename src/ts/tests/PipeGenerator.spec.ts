@@ -126,4 +126,31 @@ describe('PipeGenerator', () => {
 		assert.equal(hslGeneratedColors[0][1], hslGeneratedColors[1][1]);
 		assert.equal(hslGeneratedColors[0][2], hslGeneratedColors[1][2]);
 	});
+
+	it('should use the position selector to generate positions', () => {
+		const pipeGenerator = new PipeGenerator(undefined, undefined, () => [1, 2, 3]);
+		const generatedPosition = pipeGenerator.generatePosition();
+
+		assert.deepEqual(generatedPosition, [1, 2, 3]);
+	});
+
+	it('should allow selection of a position that has not been marked as forbidden', () => {
+		const pipeGenerator = new PipeGenerator(
+			undefined,
+			undefined,
+			() => [4, 5, 6],
+		);
+
+		assert.deepEqual(pipeGenerator.generatePosition([[1, 2, 3]]), [4, 5, 6]);
+	});
+
+	it('should not allow selection of a position that has been marked as forbidden', () => {
+		const pipeGenerator = new PipeGenerator(
+			undefined,
+			undefined,
+			(forbidden: Triplet<number>[]) => forbidden[0],
+		);
+
+		assert.throws(() => pipeGenerator.generatePosition([[1, 2, 3]]));
+	});
 });
