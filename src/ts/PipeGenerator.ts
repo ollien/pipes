@@ -39,7 +39,7 @@ export default class PipeGenerator {
 	 * @param hueSelector A function to select a hue. Should return a value in [0, 360].
 	 * 					  Defaults to a function that selects a random hue.
 	 * @param positionSelector A function to select a position in space, omitting the forbidden positions given.
-	 * 						   Defaults to a function that selects a random position between -10 and 10 on each axis.
+	 * 						   Defaults to a function that selects a random position between -2 and 4 on each axis.
 	 */
 	constructor(
 		directionSelector?: (directions: RotationDirection[]) => RotationDirection,
@@ -120,11 +120,11 @@ export default class PipeGenerator {
 	}
 
 	/**
-	 * Generate a random position in space between -10 and 10 on each component
+	 * Generate a random position in space between -2 and 5 on each component
 	 */
 	private static generateRandomPosition(forbiddenPositions: Triplet<number>[]): Triplet<number> {
-		const min = -3;
-		const max = 3;
+		const min = -2;
+		const max = 4;
 
 		let possiblePositions: Triplet<number>[] = [];
 		for (let i = min; i <= max; i++) {
