@@ -1,9 +1,9 @@
-import lodash from 'lodash';
 import reglModule from 'regl'; // eslint-disable-line no-unused-vars
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 import PipeGenerator, { Axis, Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import PipeSimulation from './PipeSimulation';
 
+const NUM_PIPES = 4;
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
 	[1, -1],
@@ -38,7 +38,7 @@ window.addEventListener('load', () => {
 	const regl = reglModule(canvas);
 
 	const pipeGenerator = new PipeGenerator();
-	const pipeSimulation = new PipeSimulation(regl, pipeGenerator);
+	const pipeSimulation = new PipeSimulation(regl, pipeGenerator, NUM_PIPES);
 	const renderPipes = pipeSimulation.getPipeRenderCommand();
 
 	regl.frame(() => {

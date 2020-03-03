@@ -5,11 +5,28 @@ import pipesShaderSource from '@shader/pipes.mustache.frag'; // eslint-disable-l
 import PipeGenerator, { Axis, Triplet, Rotation } from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import * as uniformUtil from './uniformUtil';
 
+type Nonuplet<T> = [T, T, T, T, T, T, T, T, T];
+
+/**
+ * Represents a single pipe in the simulation
+ */
 interface RenderablePipe {
 	color: Triplet<number>,
 	rotations: Rotation[],
 }
 
+/**
+ * Represents the items needed for a rotation uniform.
+ */
+interface RotationUniform {
+	axis: Axis,
+	// This matrix is flattened, so it should be a Nonuplet, rather than a Triplet<Triplet>
+	matrix: Nonuplet<number>,
+}
+
+/**
+ * Represents the parameters needed to compile the pipes shader.
+ */
 interface PipesShaderParameters {
 	numTurns: number,
 	numPipes: number,
@@ -26,17 +43,17 @@ export default class PipeSimulation {
 
 	private readonly regl: Regl;
 	private readonly pipeGenerator: PipeGenerator;
-	private readonly pipeRotations: Rotation[];
-	private readonly pipeColor: Triplet<number>;
+	private readonly pipes: RenderablePipe[];
 
 	/**
 	 * @param regl The regl context to use for the simulation
+	 * @param pipeGenerator The pipeGenerator to use to generate pipes
+	 * @param numPipes The number of pipes to render
 	 */
-	constructor(regl: Regl, pipeGenerator: PipeGenerator) {
+	constructor(regl: Regl, pipeGenerator: PipeGenerator, numPipes: number) {
 		this.regl = regl;
 		this.pipeGenerator = pipeGenerator;
-		this.pipeRotations = this.generatePipeRotations();
-		this.pipeColor = this.pipeGenerator.generateColor();
+		this.pipes = this.generatePipes(numPipes);
 	}
 
 	/**
@@ -51,28 +68,37 @@ export default class PipeSimulation {
 	getPipeRenderCommand(): DrawCommand {
 		const compiledPipesShaderSource = PipeSimulation.compilePipesShaderSource({
 			numTurns: PipeSimulation.NUM_PIPE_TURNS,
-			// TODO: Make this not part of the compilation stage if its always 1.
-			numPipes: 1,
+			numPipes: this.pipes.length,
 			yAxis: Axis.Y,
 		});
 
-		const rotationsUniform = this.pipeRotations.map((rotation: Rotation) => ({
-			axis: rotation.axis,
-			matrix: PipeSimulation.convertRotationIntoUniformRotationMatrix(rotation),
-		}));
+		const uniformRotations = this.generateRotationsForUniform();
+		const colorsUniform = uniformUtil.getObjectPropertyAsArray(this.pipes, 'color');
 
 		return this.regl({
 			frag: compiledPipesShaderSource,
 			uniforms: {
 				time: ({ tick }) => tick,
-				// TODO: Make this not an array in the shader.
-				// The shader in general could use a lot of cleanup for this process, but this is the first step.
-				'colors[0]': this.pipeColor,
-				...uniformUtil.makeUniformsForObjectArray('rotations', rotationsUniform),
+				...uniformUtil.makeUniformsForArray('colors', colorsUniform),
+				...uniformUtil.makeUniformsForObjectArray('rotations', uniformRotations),
 			},
 		});
 	}
 
+	/**
+	 * Generate a specified number of pipes to generate.
+	 * @param numPipes The number of pipes to generate
+	 */
+	private generatePipes(numPipes: number): RenderablePipe[] {
+		return Array(numPipes).fill(0).map((): RenderablePipe => ({
+			rotations: this.generatePipeRotations(),
+			color: this.pipeGenerator.generateColor(),
+		}));
+	}
+
+	/**
+	 * Generate the rotations for a single pipe
+	 */
 	private generatePipeRotations(): Rotation[] {
 		return this.pipeGenerator.generatePipeDirections(
 			PipeSimulation.NUM_PIPE_TURNS,
@@ -81,10 +107,18 @@ export default class PipeSimulation {
 	}
 
 	/**
-	 * Compile the source code of the pipes shader with the given parameters
+	 * Generate the rotations uniform for the pipes in the simulation
 	 */
-	private static compilePipesShaderSource(properties: PipesShaderParameters): string {
-		return mustache.render(pipesShaderSource, properties);
+	private generateRotationsForUniform(): RotationUniform[] {
+		// eslint-disable-next-line arrow-body-style
+		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
+			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
+				axis: rotation.axis,
+				matrix: PipeSimulation.convertRotationIntoUniformRotationMatrix(rotation),
+			}));
+		});
+
+		return lodash.flatten(pipeRotations);
 	}
 
 	/**
@@ -92,7 +126,14 @@ export default class PipeSimulation {
 	 *
 	 * @param rotations The list of rotations to generate rotation matrices for
 	 */
-	private static convertRotationIntoUniformRotationMatrix(rotation: Rotation): number[] {
-		return lodash.flatten(PipeGenerator.getRotationMatrix(rotation));
+	private static convertRotationIntoUniformRotationMatrix(rotation: Rotation): Nonuplet<number> {
+		return <Nonuplet<number>> lodash.flatten(PipeGenerator.getRotationMatrix(rotation));
+	}
+
+	/**
+	 * Compile the source code of the pipes shader with the given parameters
+	 */
+	private static compilePipesShaderSource(properties: PipesShaderParameters): string {
+		return mustache.render(pipesShaderSource, properties);
 	}
 }

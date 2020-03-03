@@ -18,11 +18,11 @@ export function makeUniformsForArray<T>(uniformArrayName: string, arr: T[]): { [
  * Keys must be of string type so they may be put into a uniform name properly
  * @param objects The list of objects to pull from.
  */
-export function makeUniformsForObjectArray<T extends { [key: string]: V }, V>(
+export function makeUniformsForObjectArray<T extends { [key: string]: any }>(
 	uniformArrayName: string,
 	objects: T[],
-): { [key: string]: V } {
-	return objects.reduce((reduced: { [key: string]: V}, item: T, index: number) => {
+): { [key: string]: any } {
+	return objects.reduce((reduced: { [key: string]: any}, item: T, index: number) => {
 		Object.keys(item).forEach((property: string) => {
 			// eslint-disable-next-line no-param-reassign
 			reduced[`${uniformArrayName}[${index}].${property}`] = item[property];
