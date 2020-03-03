@@ -174,12 +174,4 @@ export default class PipeGenerator {
 
 		return arr[index];
 	}
-
-	/**
-	 * Convert the given angle from degrees to radians
-	 * @param angle The angle to convert
-	 */
-	private static degreesToRadians(angle: number): number {
-		return angle * (Math.PI / 180);
-	}
 }
