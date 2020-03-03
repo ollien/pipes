@@ -113,35 +113,6 @@ export default class PipeGenerator {
 	}
 
 	/**
-	 * Get the rotation matrix for the given rotation.
-	 * @param rotation
-	 */
-	static getRotationMatrix(rotation: Rotation): Triplet<Triplet<number>> {
-		const angleRads = PipeGenerator.degreesToRadians(rotation.angle);
-		const sinValue = Math.sin(angleRads);
-		const cosValue = Math.cos(angleRads);
-		const rotationMatrices: { [key in Axis]: Triplet<Triplet<number>> } = {
-			[Axis.X]: [
-				[1, 0, 0],
-				[0, cosValue, -sinValue],
-				[0, sinValue, cosValue],
-			],
-			[Axis.Y]: [
-				[cosValue, 0, sinValue],
-				[0, 1, 0],
-				[-sinValue, 0, cosValue],
-			],
-			[Axis.Z]: [
-				[cosValue, -sinValue, 0],
-				[sinValue, cosValue, 0],
-				[0, 0, 1],
-			],
-		};
-
-		return rotationMatrices[rotation.axis];
-	}
-
-	/**
 	 * Generates a random hue
 	 */
 	private static generateRandomHue(): number {

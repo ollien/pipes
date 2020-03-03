@@ -20,9 +20,10 @@ interface RenderablePipe {
  * Represents the items needed for a rotation uniform.
  */
 interface RotationUniform {
-	axis: Axis,
-	// This matrix is flattened, so it should be a Nonuplet, rather than a Triplet<Triplet>
-	matrix: Nonuplet<number>,
+	// Represents an axis as a a component of a vector, with 1 being along that axis, 0 otherwise.
+	axis: Triplet<number>,
+	// Represents the angle in degrees
+	angle: number,
 }
 
 /**
@@ -31,7 +32,6 @@ interface RotationUniform {
 interface PipesShaderParameters {
 	numTurns: number,
 	numPipes: number,
-	yAxis: Axis,
 }
 
 
@@ -70,7 +70,6 @@ export default class PipeSimulation {
 		const compiledPipesShaderSource = PipeSimulation.compilePipesShaderSource({
 			numTurns: PipeSimulation.NUM_PIPE_TURNS,
 			numPipes: this.pipes.length,
-			yAxis: Axis.Y,
 		});
 
 		const uniformRotations = this.generateRotationsForUniform();
@@ -123,8 +122,8 @@ export default class PipeSimulation {
 		// eslint-disable-next-line arrow-body-style
 		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
 			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
-				axis: rotation.axis,
-				matrix: PipeSimulation.convertRotationIntoUniformRotationMatrix(rotation),
+				axis: PipeSimulation.convertAxisToTriplet(rotation.axis),
+				angle: rotation.angle,
 			}));
 		});
 
@@ -132,12 +131,20 @@ export default class PipeSimulation {
 	}
 
 	/**
-	 * Convert a rotation into a flattened rotation matrices, suitable for use when passing to a uniform.
+	 * Convert the given axis to a triplet usable by the shader
 	 *
-	 * @param rotations The list of rotations to generate rotation matrices for
+	 * @param axis The axis to convert
 	 */
-	private static convertRotationIntoUniformRotationMatrix(rotation: Rotation): Nonuplet<number> {
-		return <Nonuplet<number>> lodash.flatten(PipeGenerator.getRotationMatrix(rotation));
+	private static convertAxisToTriplet(axis: Axis): Triplet<number> {
+		/* eslint-disable no-else-return */
+		if (axis === Axis.X) {
+			return [1, 0, 0];
+		} else if (axis === Axis.Y) {
+			return [0, 1, 0];
+		} else {
+			return [0, 0, 1];
+		}
+		/* eslint-enable no-else-return */
 	}
 
 	/**
