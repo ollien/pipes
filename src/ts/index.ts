@@ -4,6 +4,9 @@ import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-va
 import PipeSimulation from './PipeSimulation';
 
 const NUM_PIPES = 4;
+const ROTATION_ANGLE = 90;
+const NUM_PIPE_TURNS = 32;
+
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
 	[1, -1],
@@ -38,7 +41,12 @@ window.addEventListener('load', () => {
 	const regl = reglModule(canvas);
 
 	const pipeGenerator = new PipeGenerator();
-	const pipeSimulation = new PipeSimulation(regl, pipeGenerator, NUM_PIPES);
+	const simulationParameters = {
+		rotationAngle: ROTATION_ANGLE,
+		numPipeTurns: NUM_PIPE_TURNS,
+		numPipes: NUM_PIPES,
+	};
+	const pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters);
 	const renderPipes = pipeSimulation.getPipeRenderCommand();
 
 	regl.frame(() => {

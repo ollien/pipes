@@ -28,8 +28,8 @@ precision mediump float;
 #define PIPE_UNION_SOFT_FACTOR 0.05
 
 // In the worst case, we will have NUM_TURNS pipes going backwards, and one pipe length is (CYLINDER_HEIGHT + 2*SPHERE_RADIUS)
-// We multiply this the number of turns, and a factor of safety of 1.25
-#define MAX_MARCHING_DISTANCE 1.25*(CYLINDER_HEIGHT + 2.*SPHERE_RADIUS) * float(NUM_TURNS)
+// We multiply this the number of turns, add a base value to ensure we march far enough for most cases.
+#define MAX_MARCHING_DISTANCE 64. + (CYLINDER_HEIGHT + 2.*SPHERE_RADIUS) * float(NUM_TURNS)
 #define MAX_MARCHING_STEPS 128
 #define MARCH_HIT_THRESHOLD 0.01
 #define NORMAL_DELTA 0.001

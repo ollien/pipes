@@ -41,27 +41,37 @@ interface RotationUniform {
 	axis: Axis,
 }
 
+/**
+ * Holds parameters to adjust on a per simulation basis
+ */
+export interface PipeParameters {
+	rotationAngle: number,
+	numPipeTurns: number,
+	numPipes: number,
+}
+
 
 /**
- * Represents a simulation of a single pipe.
+ * Represents a simulation of a system of pipes
  */
 export default class PipeSimulation {
-	private static readonly ROTATION_ANGLE = 90;
-	private static readonly NUM_PIPE_TURNS = 32;
-
 	private readonly regl: Regl;
 	private readonly pipeGenerator: PipeGenerator;
 	private readonly pipes: RenderablePipe[];
+	private readonly rotationAngle: number;
+	private readonly numPipeTurns: number;
 
 	/**
 	 * @param regl The regl context to use for the simulation
 	 * @param pipeGenerator The pipeGenerator to use to generate pipes
-	 * @param numPipes The number of pipes to render
+	 * @param pipeParameters Parameters that configure the way pipes are generated
 	 */
-	constructor(regl: Regl, pipeGenerator: PipeGenerator, numPipes: number) {
+	constructor(regl: Regl, pipeGenerator: PipeGenerator, pipeParameters: PipeParameters) {
 		this.regl = regl;
 		this.pipeGenerator = pipeGenerator;
-		this.pipes = this.generatePipes(numPipes);
+		this.rotationAngle = pipeParameters.rotationAngle;
+		this.numPipeTurns = pipeParameters.numPipeTurns;
+		this.pipes = this.generatePipes(pipeParameters.numPipes);
 	}
 
 	/**
@@ -75,7 +85,7 @@ export default class PipeSimulation {
 	 */
 	getPipeRenderCommand(): DrawCommand {
 		const compiledPipesShaderSource = PipeSimulation.compilePipesShaderSource({
-			numTurns: PipeSimulation.NUM_PIPE_TURNS,
+			numTurns: this.numPipeTurns,
 			numPipes: this.pipes.length,
 			yAxis: Axis.Y,
 		});
@@ -106,21 +116,11 @@ export default class PipeSimulation {
 			usedPositions.push(position);
 
 			return {
-				rotations: this.generatePipeRotations(),
+				rotations: this.pipeGenerator.generatePipeDirections(this.numPipeTurns, this.rotationAngle),
 				color: this.pipeGenerator.generateColor(),
 				startingPosition: position,
 			};
 		});
-	}
-
-	/**
-	 * Generate the rotations for a single pipe
-	 */
-	private generatePipeRotations(): Rotation[] {
-		return this.pipeGenerator.generatePipeDirections(
-			PipeSimulation.NUM_PIPE_TURNS,
-			PipeSimulation.ROTATION_ANGLE,
-		);
 	}
 
 	/**
