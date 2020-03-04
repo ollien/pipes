@@ -1,13 +1,14 @@
 import reglModule, { DrawCommand } from 'regl'; // eslint-disable-line no-unused-vars
+import * as dat from 'dat.gui';
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
-import PipeSimulation from './PipeSimulation';
+import PipeSimulation, { PipeParameters } from './PipeSimulation';
 import * as positionUtil from './positionUtil';
 import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 
-const NUM_PIPES = 4;
-const ROTATION_ANGLE = 90;
-const NUM_PIPE_TURNS = 32;
+const DEFAULT_NUM_PIPES = 8;
+const DEFAULT_ROTATION_ANGLE = 90;
+const DEFAULT_NUM_PIPE_TURNS = 16;
 const DELAY_BEFORE_REDRAW = 2500;
 
 const RENDER_TRIANGLE_VERTS = [
@@ -24,12 +25,14 @@ const RENDER_TRIANGLE_VERTS = [
  *
  * @param canvas The canvas to resize
  */
-function setCanvasSize(canvas: HTMLCanvasElement): void {
+function setCanvasSize(canvas: HTMLCanvasElement, scaleFactor: number = 1): void {
 	// Explicitly casting, as there will always be an HTML document so we don't care about the case of it being null.
 	const html = <HTMLElement>document.querySelector('html');
 	/* eslint-disable no-param-reassign */
-	canvas.height = html.clientHeight;
-	canvas.width = html.clientWidth;
+	canvas.height = html.clientHeight * scaleFactor;
+	canvas.width = html.clientWidth * scaleFactor;
+	canvas.style.height = `${html.clientHeight}px`;
+	canvas.style.width = `${html.clientWidth}px`;
 	/* eslint-enable no-param-reassign */
 }
 
@@ -37,8 +40,8 @@ function setCanvasSize(canvas: HTMLCanvasElement): void {
  * Generate a random observation point
  */
 function generateObservationPoint(): Triplet<number> {
-	const PHI_MIN = -135;
-	const PHI_MAX = 135;
+	const PHI_MIN = -85;
+	const PHI_MAX = 85;
 	const THETA_MIN = -135;
 	const THETA_MAX = 135;
 	const RADIUS = 16;
@@ -53,6 +56,14 @@ function generateObservationPoint(): Triplet<number> {
 	];
 }
 
+function setupGUI(properties: PipeParameters, resetFunc: () => void) {
+	const gui = new dat.GUI();
+	gui.add(properties, 'rotationAngle', 0, 90);
+	gui.add(properties, 'numPipes', 1, 8, 1);
+	gui.add(properties, 'numPipeTurns', 4, 64, 1);
+	gui.add({ reset: resetFunc }, 'reset');
+}
+
 window.addEventListener('load', () => {
 	const canvas = <HTMLCanvasElement|null>document.getElementById('gl');
 	if (canvas === null) {
@@ -63,22 +74,28 @@ window.addEventListener('load', () => {
 
 	const regl = reglModule(canvas);
 
-	const pipeGenerator = new PipeGenerator();
 	const simulationParameters = {
-		rotationAngle: ROTATION_ANGLE,
-		numPipeTurns: NUM_PIPE_TURNS,
-		numPipes: NUM_PIPES,
+		rotationAngle: DEFAULT_ROTATION_ANGLE,
+		numPipeTurns: DEFAULT_NUM_PIPE_TURNS,
+		numPipes: DEFAULT_NUM_PIPES,
 	};
 
+	const pipeGenerator = new PipeGenerator();
 	let pipeSimulation: PipeSimulation;
 	let renderPipes: DrawCommand;
+	let tickCount = 0;
+	let timeoutId: number|null = null;
 	const makeSimulationComponents = () => {
 		pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters, generateObservationPoint);
 		renderPipes = pipeSimulation.getPipeRenderCommand();
+		tickCount = 0;
+		if (timeoutId !== null) {
+			clearTimeout(timeoutId);
+		}
 	};
-	makeSimulationComponents();
 
-	let tickCount = 0;
+	makeSimulationComponents();
+	setupGUI(simulationParameters, makeSimulationComponents);
 	regl.frame(() => {
 		regl({
 			vert: trianglesShaderSource,
@@ -96,10 +113,9 @@ window.addEventListener('load', () => {
 
 		tickCount++;
 		// The simulation operates at one pipe component per tick, so once we reach that, we can start a timer.
-		if (tickCount % (NUM_PIPES * NUM_PIPE_TURNS) === 0) {
-			setTimeout(() => {
+		if (tickCount % (DEFAULT_NUM_PIPES * DEFAULT_NUM_PIPE_TURNS) === 0) {
+			timeoutId = setTimeout(() => {
 				makeSimulationComponents();
-				tickCount = 0;
 			}, DELAY_BEFORE_REDRAW);
 		}
 	});
