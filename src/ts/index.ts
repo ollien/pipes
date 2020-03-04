@@ -1,4 +1,4 @@
-import reglModule from 'regl'; // eslint-disable-line no-unused-vars
+import reglModule, { DrawCommand } from 'regl'; // eslint-disable-line no-unused-vars
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import PipeSimulation from './PipeSimulation';
@@ -6,6 +6,7 @@ import PipeSimulation from './PipeSimulation';
 const NUM_PIPES = 4;
 const ROTATION_ANGLE = 90;
 const NUM_PIPE_TURNS = 32;
+const DELAY_BEFORE_REDRAW = 2500;
 
 const RENDER_TRIANGLE_VERTS = [
 	[-1, -1],
@@ -46,9 +47,16 @@ window.addEventListener('load', () => {
 		numPipeTurns: NUM_PIPE_TURNS,
 		numPipes: NUM_PIPES,
 	};
-	const pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters);
-	const renderPipes = pipeSimulation.getPipeRenderCommand();
 
+	let pipeSimulation: PipeSimulation;
+	let renderPipes: DrawCommand;
+	const makeSimulationComponents = () => {
+		pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters);
+		renderPipes = pipeSimulation.getPipeRenderCommand();
+	};
+	makeSimulationComponents();
+
+	let tickCount = 0;
 	regl.frame(() => {
 		regl({
 			vert: trianglesShaderSource,
@@ -56,9 +64,21 @@ window.addEventListener('load', () => {
 				a_position: RENDER_TRIANGLE_VERTS,
 			},
 			count: RENDER_TRIANGLE_VERTS.length,
-			uniforms: { resolution: [canvas.width, canvas.height] },
+			uniforms: {
+				resolution: [canvas.width, canvas.height],
+				time: () => tickCount,
+			},
 		})(() => {
 			renderPipes();
 		});
+
+		tickCount++;
+		// The simulation operates at one pipe component per tick, so once we reach that, we can start a timer.
+		if (tickCount % (NUM_PIPES * NUM_PIPE_TURNS) === 0) {
+			setTimeout(() => {
+				makeSimulationComponents();
+				tickCount = 0;
+			}, DELAY_BEFORE_REDRAW);
+		}
 	});
 });

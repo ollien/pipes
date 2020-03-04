@@ -97,7 +97,6 @@ export default class PipeSimulation {
 		return this.regl({
 			frag: compiledPipesShaderSource,
 			uniforms: {
-				time: ({ tick }) => tick,
 				...uniformUtil.makeUniformsForArray('colors', colorsUniform),
 				...uniformUtil.makeUniformsForObjectArray('rotations', uniformRotations),
 				...uniformUtil.makeUniformsForArray('starting_positions', startingPositionsUniform),
