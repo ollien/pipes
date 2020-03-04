@@ -56,12 +56,24 @@ function generateObservationPoint(): Triplet<number> {
 	];
 }
 
-function setupGUI(properties: PipeParameters, resetFunc: () => void) {
+/**
+ * Setup the control GUI
+ *
+ * @param properties The object to adjust the parameters of
+ * @param resetFunc Function to reset the simulation
+ */
+function setupGUI(properties: PipeParameters, resetFunc: () => void): void {
 	const gui = new dat.GUI();
-	gui.add(properties, 'rotationAngle', 0, 90);
-	gui.add(properties, 'numPipes', 1, 8, 1);
-	gui.add(properties, 'numPipeTurns', 4, 64, 1);
-	gui.add({ reset: resetFunc }, 'reset');
+	const adjustableValues = [
+		gui.add(properties, 'rotationAngle', 0, 90),
+		gui.add(properties, 'numPipes', 1, 6, 1),
+		gui.add(properties, 'numPipeTurns', 4, 32, 1),
+	];
+
+	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
+	adjustableValues.forEach((controller: dat.GUIController) => {
+		controller.onFinishChange(resetFunc);
+	});
 }
 
 window.addEventListener('load', () => {
