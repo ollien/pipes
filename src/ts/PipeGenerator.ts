@@ -33,6 +33,18 @@ export default class PipeGenerator {
 	private positionSelector!: (forbidden: Triplet<number>[]) => Triplet<number>;
 
 	/**
+	 * Create a new pipe generator with default selectors.
+	 */
+	constructor();
+
+	/**
+	 * Create a new pipe generator with the same selectors as another.
+	 *
+	 * @param generator The generator to copy from
+	 */
+	constructor(generator: PipeGenerator);
+
+	/**
 	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
 	 *                          Defaults to a function that selects a random direction.
 	 * @param hueSelector A function to select a hue. Should return a value in [0, 360].
@@ -44,7 +56,19 @@ export default class PipeGenerator {
 		directionSelector?: (directions: RotationDirection[]) => RotationDirection,
 		hueSelector?: () => number,
 		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
+	);
+
+	constructor(
+		directionSelectorOrPipeGenerator?: ((directions: RotationDirection[]) => RotationDirection) | PipeGenerator,
+		hueSelector?: () => number,
+		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
 	) {
+		let directionSelector = <(directions: RotationDirection[]) => RotationDirection> directionSelectorOrPipeGenerator;
+		if (typeof directionSelectorOrPipeGenerator === 'object') {
+			const otherGenerator = <PipeGenerator>directionSelectorOrPipeGenerator;
+			({ directionSelector, hueSelector, positionSelector } = otherGenerator);
+		}
+
 		this.setDirectionSelector(directionSelector);
 		this.setHueSelector(hueSelector);
 		this.setPositionSelector(positionSelector);
