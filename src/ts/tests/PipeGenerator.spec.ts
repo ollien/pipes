@@ -128,40 +128,4 @@ describe('PipeGenerator', () => {
 
 		assert.throws(() => pipeGenerator.generatePosition([[1, 2, 3]]));
 	});
-
-	it('should allow you to create a copy of an existing PipeGenerator, preserving the selectors', () => {
-		// Counts to represent how many times each selector was called
-		let directionCalls = 0;
-		let hueCalls = 0;
-		let positionCalls = 0;
-
-		const pipeGenerator = new PipeGenerator(
-			(directions: RotationDirection[]): RotationDirection => {
-				directionCalls++;
-				return directions[0];
-			},
-			(): number => {
-				hueCalls++;
-				return 56;
-			},
-			(): Triplet<number> => {
-				positionCalls++;
-				return [1, 2, 3];
-			},
-		);
-
-		const copy = new PipeGenerator(pipeGenerator);
-		pipeGenerator.generatePipeDirections(1, 90);
-		pipeGenerator.generateColor();
-		pipeGenerator.generatePosition();
-
-		copy.generatePipeDirections(1, 90);
-		copy.generateColor();
-		copy.generatePosition();
-
-		// We can check that the selectors were copied by ensuring that the call counters are 2.
-		assert.equal(directionCalls, 2);
-		assert.equal(hueCalls, 2);
-		assert.equal(positionCalls, 2);
-	});
 });

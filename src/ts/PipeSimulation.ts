@@ -4,9 +4,15 @@ import lodash from 'lodash';
 import pipesShaderSource from '@shader/pipes.mustache.frag'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import * as uniformUtil from './uniformUtil';
-import { Axis, Rotation, Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
-
-type Nonuplet<T> = [T, T, T, T, T, T, T, T, T];
+import * as positionUtl from './positionUtil';
+/* eslint-disable no-unused-vars */
+import {
+	Axis,
+	Nonuplet,
+	Rotation,
+	Triplet,
+} from './positionUtil';
+/* eslint-enable no-unused-vars */
 
 /**
  * Represents a single pipe in the simulation
@@ -23,6 +29,7 @@ interface RenderablePipe {
 interface PipesShaderParameters {
 	numTurns: number,
 	numPipes: number,
+	yAxis: Axis,
 }
 
 
@@ -30,10 +37,8 @@ interface PipesShaderParameters {
  * Represents the rotation that is passed to the shader as a uniform
  */
 interface RotationUniform {
-	// This is a spatial axis. See positionUtil.convertAxisToSpatialAxis
-	// We use this in the uniform to avoid branching in the shader
-	axis: Triplet<number>,
-	angle: number,
+	matrix: Nonuplet<number>
+	axis: Axis,
 }
 
 
@@ -72,6 +77,7 @@ export default class PipeSimulation {
 		const compiledPipesShaderSource = PipeSimulation.compilePipesShaderSource({
 			numTurns: PipeSimulation.NUM_PIPE_TURNS,
 			numPipes: this.pipes.length,
+			yAxis: Axis.Y,
 		});
 
 		const uniformRotations = this.convertRotationsForUniform();
@@ -124,29 +130,12 @@ export default class PipeSimulation {
 		// eslint-disable-next-line arrow-body-style
 		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
 			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
-				axis: PipeSimulation.convertAxisToTriplet(rotation.axis),
-				angle: rotation.angle,
+				matrix: <Nonuplet<number>> lodash.flatten(positionUtl.getRotationMatrix(rotation)),
+				axis: rotation.axis,
 			}));
 		});
 
 		return lodash.flatten(pipeRotations);
-	}
-
-	/**
-	 * Convert the given axis to a triplet usable by the shader
-	 *
-	 * @param axis The axis to convert
-	 */
-	private static convertAxisToTriplet(axis: Axis): Triplet<number> {
-		/* eslint-disable no-else-return */
-		if (axis === Axis.X) {
-			return [1, 0, 0];
-		} else if (axis === Axis.Y) {
-			return [0, 1, 0];
-		} else {
-			return [0, 0, 1];
-		}
-		/* eslint-enable no-else-return */
 	}
 
 	/**

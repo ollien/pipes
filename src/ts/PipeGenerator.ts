@@ -6,21 +6,10 @@ export default class PipeGenerator {
 	private static readonly COLOR_SATURATION = 100;
 	private static readonly COLOR_LIGHTNESS = 55;
 
-	private directionSelector!: (directions: RotationDirection[]) => RotationDirection;
-	private hueSelector!: () => number;
-	private positionSelector!: (forbidden: Triplet<number>[]) => Triplet<number>;
+	private directionSelector: (directions: RotationDirection[]) => RotationDirection;
+	private hueSelector: () => number;
+	private positionSelector: (forbidden: Triplet<number>[]) => Triplet<number>;
 
-	/**
-	 * Create a new pipe generator with default selectors.
-	 */
-	constructor();
-
-	/**
-	 * Create a new pipe generator with the same selectors as another.
-	 *
-	 * @param generator The generator to copy from
-	 */
-	constructor(generator: PipeGenerator);
 
 	/**
 	 * @param directionSelector A function to select a rotation direction from a list of possibilities.
@@ -34,22 +23,10 @@ export default class PipeGenerator {
 		directionSelector?: (directions: RotationDirection[]) => RotationDirection,
 		hueSelector?: () => number,
 		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
-	);
-
-	constructor(
-		directionSelectorOrPipeGenerator?: ((directions: RotationDirection[]) => RotationDirection) | PipeGenerator,
-		hueSelector?: () => number,
-		positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>,
 	) {
-		let directionSelector = <(directions: RotationDirection[]) => RotationDirection> directionSelectorOrPipeGenerator;
-		if (typeof directionSelectorOrPipeGenerator === 'object') {
-			const otherGenerator = <PipeGenerator>directionSelectorOrPipeGenerator;
-			({ directionSelector, hueSelector, positionSelector } = otherGenerator);
-		}
-
-		this.setDirectionSelector(directionSelector);
-		this.setHueSelector(hueSelector);
-		this.setPositionSelector(positionSelector);
+		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
+		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
+		this.positionSelector = positionSelector == null ? PipeGenerator.generateRandomPosition : positionSelector;
 	}
 
 	/**
@@ -111,30 +88,6 @@ export default class PipeGenerator {
 
 			return { axis: direction.axis, angle: direction.polarity * rotationAngle };
 		});
-	}
-
-	/**
-	 * Set the direction selector
-	 * @param directionSelector The direction selector to use
-	 */
-	setDirectionSelector(directionSelector?: (directions: RotationDirection[]) => RotationDirection): void {
-		this.directionSelector = directionSelector == null ? PipeGenerator.getRandomArrayElement : directionSelector;
-	}
-
-	/**
-	 * Set the hue selector
-	 * @param hueSelector The hue selector to use
-	 */
-	setHueSelector(hueSelector?: () => number): void {
-		this.hueSelector = hueSelector == null ? PipeGenerator.generateRandomHue : hueSelector;
-	}
-
-	/**
-	 * Set the position selector
-	 * @param positionSelector The position selector to use
-	 */
-	setPositionSelector(positionSelector?: (forbidden: Triplet<number>[]) => Triplet<number>): void {
-		this.positionSelector = positionSelector == null ? PipeGenerator.generateRandomPosition : positionSelector;
 	}
 
 	/**

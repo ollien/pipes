@@ -19,7 +19,7 @@ precision mediump float;
 #define SURFACE_ALBEDO 1.
 
 // Along the Y axis we will not generate joint spheres
-#define NO_JOINT_AXIS vec3(0., 1., 0.)
+#define NO_JOINT_AXIS {{ yAxis }}
 
 #define CYLINDER_RADIUS 0.2
 #define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
@@ -35,8 +35,8 @@ precision mediump float;
 #define NORMAL_DELTA 0.001
 
 struct Rotation {
-	float angle;
-	vec3 axis;
+	mat3 matrix;
+	int axis;
 };
 
 uniform vec2 resolution;
@@ -57,7 +57,7 @@ float makeJointSphere(vec3 pipe_pos, vec3 sphere_offset) {
  * A signed distance function that will represent the segments of a pipe in our simulation.
  * Returns the distance from pos to the surface.
  */
-float pipe_segment_sdf(vec3 pos, vec3 axis) {
+float pipe_segment_sdf(vec3 pos, int axis) {
 	float cylinder = fCylinder(pos, CYLINDER_RADIUS, CYLINDER_HEIGHT);
 	if (axis == NO_JOINT_AXIS) {
 		return cylinder;
@@ -104,7 +104,7 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 			Rotation rotation = rotations[i*NUM_TURNS + j];
 
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
-			pipe_pos = rotateQ(rotation.axis, rotation.angle * PI/180.) * pipe_pos;
+			pipe_pos = rotation.matrix * pipe_pos;
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
 
 			float pipe_candidate = pipe_segment_sdf(pipe_pos, rotation.axis);
