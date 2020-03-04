@@ -123,7 +123,7 @@ export default class PipeGenerator {
 
 		possiblePositions = lodash.differenceWith(possiblePositions, forbiddenPositions, lodash.isEqual);
 
-		return possiblePositions[Math.floor(Math.random()) * possiblePositions.length];
+		return PipeGenerator.getRandomArrayElement(possiblePositions);
 	}
 
 	/**
