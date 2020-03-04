@@ -24,6 +24,7 @@ precision mediump float;
 #define CYLINDER_RADIUS 0.2
 #define CYLINDER_HEIGHT 5. * CYLINDER_RADIUS
 #define SPHERE_RADIUS 1.6 * CYLINDER_RADIUS
+#define Z_FIGHTING_CORRECTION_FACTOR CYLINDER_RADIUS / 8.
 #define PIPE_UNION_SOFT_FACTOR 0.05
 
 // In the worst case, we will have NUM_TURNS pipes going backwards, and one pipe length is (CYLINDER_HEIGHT + 2*SPHERE_RADIUS)
@@ -106,7 +107,10 @@ float pipe_sdf(vec3 pos, int pipe_id) {
 			pipe_pos = rotateQ(rotation.axis, rotation.angle * PI/180.) * pipe_pos;
 			pipe_pos += CYLINDER_HEIGHT * growth_vector;
 
-			pipes = min(pipes, pipe_segment_sdf(pipe_pos, rotation.axis));
+			float pipe_candidate = pipe_segment_sdf(pipe_pos, rotation.axis);
+			pipe_candidate *= (1. - Z_FIGHTING_CORRECTION_FACTOR * float(pipe_id));
+
+			pipes = min(pipes, pipe_candidate);
 		}
 	}
 
