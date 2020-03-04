@@ -6,13 +6,25 @@ import Quaternion from 'quaternion';
 
 export type Triplet<T> = [T, T, T];
 
-/**
- * Represents the items needed for a rotation in 3D space.
- */
-export interface SpatialRotation {
-	// Represents an axis as a a component of a vector, with 1 being along that axis, 0 otherwise.
-	axis: Triplet<number>,
-	// Represents the angle in degrees
+// Axis represents an axis that a pipe can travel along
+// These aren't actually unused, eslint just bugs out about it.
+/* eslint-disable no-unused-vars */
+export enum Axis {
+	X = 1,
+	Y,
+	Z
+}
+/* eslint-enable no-unused-vars */
+
+// Represents the base of a rotation, simply the axis and the polarity.
+export interface RotationDirection {
+	axis: Axis,
+	polarity: number,
+}
+
+// Represents a rotation about a given axis with a standard angle.
+export interface Rotation {
+	axis: Axis,
 	angle: number,
 }
 
@@ -22,6 +34,23 @@ export interface SpatialRotation {
  */
 export function degreesToRadians(angle: number): number {
 	return angle * (Math.PI / 180);
+}
+
+/**
+ * Convert an axis to its cartesian vector equivalent e.g. Y => [0, 1, 0]
+ * @param axis The axis to convert
+ */
+export function convertAxisToSpatialAxis(axis: Axis): Triplet<number> {
+	switch (axis) {
+	case Axis.X:
+		return [1, 0, 0];
+	case Axis.Y:
+		return [0, 1, 0];
+	case Axis.Z:
+		return [0, 0, 1];
+	default:
+		throw Error('Invalid axis');
+	}
 }
 
 /**
@@ -50,7 +79,7 @@ function operateOnTriplets(
  */
 export function generateTrailFromRotations(
 	startingPoint: Triplet<number>,
-	rotations: SpatialRotation[],
+	rotations: Rotation[],
 ): Triplet<number>[] {
 	const trail: Triplet<number>[] = [startingPoint];
 	// This matrix represents a change of basis from the standard coordinates to the coordinates of each pipe
@@ -61,8 +90,12 @@ export function generateTrailFromRotations(
 
 	const growthDirection: Triplet<number> = [0, 1, 0];
 	let cursor = startingPoint;
-	rotations.forEach((rotation: SpatialRotation) => {
-		const quaternion = Quaternion.fromAxisAngle(rotation.axis, degreesToRadians(rotation.angle));
+	rotations.forEach((rotation: Rotation) => {
+		const quaternion = Quaternion.fromAxisAngle(
+			convertAxisToSpatialAxis(rotation.axis),
+			degreesToRadians(rotation.angle),
+		);
+
 		// Rotate each part of the basis in accordance with the quaternion
 		for (let i = 0; i < basisMatrix.columns; i++) {
 			const axis = <Triplet<number>>basisMatrix.getColumn(i);

@@ -2,7 +2,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { assert } from 'chai';
 import 'mocha';
-import { Triplet } from '../positionUtil'; // eslint-disable-line no-unused-vars
+import { Axis, Triplet } from '../positionUtil'; // eslint-disable-line no-unused-vars
 import * as positionUtil from '../positionUtil';
 
 describe('positionUtil', () => {
@@ -10,10 +10,10 @@ describe('positionUtil', () => {
 		{
 			name: 'all positive',
 			rotations: [
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 0, 1] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.Z },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.X },
 			],
 			expected: [
 				[1, 1, 0],
@@ -26,10 +26,10 @@ describe('positionUtil', () => {
 		{
 			name: 'loop',
 			rotations: [
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
+				{ angle: 90, axis: Axis.X },
+				{ angle: 90, axis: Axis.X },
+				{ angle: 90, axis: Axis.X },
+				{ angle: 90, axis: Axis.X },
 			],
 			expected: [
 				[1, 1, 0],
@@ -42,10 +42,10 @@ describe('positionUtil', () => {
 		{
 			name: 'one bend',
 			rotations: [
-				{ angle: 90, axis: <Triplet<number>>[1, 0, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
+				{ angle: 90, axis: Axis.X },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.Y },
 			],
 			expected: [
 				[1, 1, 0],
@@ -58,9 +58,9 @@ describe('positionUtil', () => {
 		{
 			name: 'no bends',
 			rotations: [
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
-				{ angle: 90, axis: <Triplet<number>>[0, 1, 0] },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.Y },
+				{ angle: 90, axis: Axis.Y },
 			],
 			expected: [
 				[1, 1, 0],
@@ -75,7 +75,7 @@ describe('positionUtil', () => {
 		it(`should correctly generate a path given a rotation set: ${spec.name}`, () => {
 			const startingPoint: Triplet<number> = [1, 1, 0];
 			// eslint-disable-next-line prefer-destructuring
-			const rotations: positionUtil.SpatialRotation[] = spec.rotations;
+			const rotations: positionUtil.Rotation[] = spec.rotations;
 			const actualPath = positionUtil.generateTrailFromRotations(startingPoint, rotations);
 			const expectedPath = spec.expected;
 

@@ -5,8 +5,13 @@ import 'mocha';
 import lodash from 'lodash';
 import colorConvert from 'color-convert';
 /* eslint-disable no-unused-vars */
-import PipeGenerator, { RotationDirection, Rotation, Axis } from '../PipeGenerator';
-import { Triplet } from '../positionUtil';
+import PipeGenerator from '../PipeGenerator';
+import {
+	Axis,
+	RotationDirection,
+	Rotation,
+	Triplet,
+} from '../positionUtil';
 /* eslint-enable no-unused-vars */
 
 describe('PipeGenerator', () => {

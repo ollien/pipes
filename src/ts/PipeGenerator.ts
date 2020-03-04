@@ -1,28 +1,6 @@
 import colorConvert from 'color-convert';
 import lodash from 'lodash';
-import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
-
-// Axis represents an axis that a pipe can travel along
-// These aren't actually unused, eslint just bugs out about it.
-/* eslint-disable no-unused-vars */
-export enum Axis {
-	X = 1,
-	Y,
-	Z
-}
-/* eslint-enable no-unused-vars */
-
-// Represents the base of a rotation, simply the axis and the polarity.
-export interface RotationDirection {
-	axis: Axis,
-	polarity: number,
-}
-
-// Represents a rotation about a given axis with a standard angle.
-export interface Rotation {
-	axis: Axis,
-	angle: number,
-}
+import { Axis, Rotation, RotationDirection, Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 
 export default class PipeGenerator {
 	private static readonly COLOR_SATURATION = 100;
