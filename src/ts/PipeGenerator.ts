@@ -1,6 +1,13 @@
 import colorConvert from 'color-convert';
 import lodash from 'lodash';
-import { Axis, Rotation, RotationDirection, Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
+/* eslint-disable no-unused-vars */
+import {
+	Axis,
+	Rotation,
+	RotationDirection,
+	Triplet,
+} from './positionUtil';
+/* eslint-enable no-unused-vars */
 
 export default class PipeGenerator {
 	private static readonly COLOR_SATURATION = 100;
