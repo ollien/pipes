@@ -2,6 +2,8 @@ import reglModule, { DrawCommand } from 'regl'; // eslint-disable-line no-unused
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import PipeSimulation from './PipeSimulation';
+import * as positionUtil from './positionUtil';
+import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 
 const NUM_PIPES = 4;
 const ROTATION_ANGLE = 90;
@@ -31,6 +33,26 @@ function setCanvasSize(canvas: HTMLCanvasElement): void {
 	/* eslint-enable no-param-reassign */
 }
 
+/**
+ * Generate a random observation point
+ */
+function generateObservationPoint(): Triplet<number> {
+	const PHI_MIN = -135;
+	const PHI_MAX = 135;
+	const THETA_MIN = -135;
+	const THETA_MAX = 135;
+	const RADIUS = 16;
+
+	const phi = positionUtil.degreesToRadians(Math.random() * (PHI_MAX - PHI_MIN) + PHI_MIN);
+	const theta = positionUtil.degreesToRadians(Math.random() * (THETA_MAX - THETA_MIN) + THETA_MIN);
+
+	return [
+		RADIUS * Math.sin(phi) * Math.cos(theta),
+		RADIUS * Math.sin(phi) * Math.sin(theta),
+		RADIUS * Math.cos(phi),
+	];
+}
+
 window.addEventListener('load', () => {
 	const canvas = <HTMLCanvasElement|null>document.getElementById('gl');
 	if (canvas === null) {
@@ -51,7 +73,7 @@ window.addEventListener('load', () => {
 	let pipeSimulation: PipeSimulation;
 	let renderPipes: DrawCommand;
 	const makeSimulationComponents = () => {
-		pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters);
+		pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters, generateObservationPoint);
 		renderPipes = pipeSimulation.getPipeRenderCommand();
 	};
 	makeSimulationComponents();

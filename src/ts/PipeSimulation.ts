@@ -4,7 +4,7 @@ import lodash from 'lodash';
 import pipesShaderSource from '@shader/pipes.mustache.frag'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
 import * as uniformUtil from './uniformUtil';
-import * as positionUtl from './positionUtil';
+import * as positionUtil from './positionUtil';
 /* eslint-disable no-unused-vars */
 import {
 	Axis,
@@ -55,22 +55,35 @@ export interface PipeParameters {
  * Represents a simulation of a system of pipes
  */
 export default class PipeSimulation {
+	private static readonly DEFAULT_OBSERVATION_POINT: Triplet<number> = [10, -10, 10];
 	private readonly regl: Regl;
 	private readonly pipeGenerator: PipeGenerator;
 	private readonly pipes: RenderablePipe[];
 	private readonly rotationAngle: number;
 	private readonly numPipeTurns: number;
+	private readonly observationPointSelector: () => Triplet<number>;
 
 	/**
 	 * @param regl The regl context to use for the simulation
 	 * @param pipeGenerator The pipeGenerator to use to generate pipes
 	 * @param pipeParameters Parameters that configure the way pipes are generated
+	 * @param observationPointGenerator Generates the position that the pipes will be observed from
+	 * 									(i.e. the camera position). If unspecified, a standard position will be chosen.
 	 */
-	constructor(regl: Regl, pipeGenerator: PipeGenerator, pipeParameters: PipeParameters) {
+	constructor(
+		regl: Regl,
+		pipeGenerator: PipeGenerator,
+		pipeParameters: PipeParameters,
+		observationPointSelector?: () => Triplet<number>,
+	) {
 		this.regl = regl;
 		this.pipeGenerator = pipeGenerator;
 		this.rotationAngle = pipeParameters.rotationAngle;
 		this.numPipeTurns = pipeParameters.numPipeTurns;
+		this.observationPointSelector = (observationPointSelector == null
+			? () => PipeSimulation.DEFAULT_OBSERVATION_POINT
+			: observationPointSelector);
+
 		this.pipes = this.generatePipes(pipeParameters.numPipes);
 	}
 
@@ -97,6 +110,7 @@ export default class PipeSimulation {
 		return this.regl({
 			frag: compiledPipesShaderSource,
 			uniforms: {
+				observation_point: this.observationPointSelector(),
 				...uniformUtil.makeUniformsForArray('colors', colorsUniform),
 				...uniformUtil.makeUniformsForObjectArray('rotations', uniformRotations),
 				...uniformUtil.makeUniformsForArray('starting_positions', startingPositionsUniform),
@@ -129,7 +143,7 @@ export default class PipeSimulation {
 		// eslint-disable-next-line arrow-body-style
 		const pipeRotations = this.pipes.map((pipe: RenderablePipe) => {
 			return pipe.rotations.map((rotation: Rotation): RotationUniform => ({
-				matrix: <Nonuplet<number>> lodash.flatten(positionUtl.getRotationMatrix(rotation)),
+				matrix: <Nonuplet<number>> lodash.flatten(positionUtil.getRotationMatrix(rotation)),
 				axis: rotation.axis,
 			}));
 		});

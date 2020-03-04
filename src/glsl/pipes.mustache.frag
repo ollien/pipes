@@ -45,6 +45,7 @@ uniform float time;
 uniform Rotation rotations[NUM_TURNS * NUM_PIPES];
 uniform vec3 colors[NUM_PIPES];
 uniform vec3 starting_positions[NUM_PIPES];
+uniform vec3 observation_point;
 
 /**
  * Makes a sphere to be used as a pipe joint.
@@ -256,7 +257,6 @@ void main() {
 	position.x *= resolution.x / resolution.y;
 
 	vec3 direction = vec3(position, 1.);
-	vec3 observation_point = vec3(10., -10., 10.);
 	vec4 marched_pipe = get_marched_pipe(observation_point, direction);
 	vec3 marched_ray_normal = marched_pipe.xyz;
 	int marched_pipe_id = int(floor(marched_pipe.w + 0.5));

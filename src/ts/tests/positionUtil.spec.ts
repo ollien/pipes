@@ -30,4 +30,8 @@ describe('positionUtil', () => {
 			assert.closeTo(component, expected[index], 0.001, `Component ${index} does not match`);
 		});
 	});
+
+	it('should convert degrees to radians properly', () => {
+		assert.closeTo(positionUtil.degreesToRadians(45), Math.PI / 4, 0.001);
+	});
 });

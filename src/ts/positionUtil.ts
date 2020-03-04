@@ -28,7 +28,7 @@ export interface Rotation {
  * Convert the given angle from degrees to radians
  * @param angle The angle to convert
  */
-function degreesToRadians(angle: number): number {
+export function degreesToRadians(angle: number): number {
 	return angle * (Math.PI / 180);
 }
 
