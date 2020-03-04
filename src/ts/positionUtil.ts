@@ -117,3 +117,19 @@ export function generateTrailFromRotations(
 
 	return trail;
 }
+
+/**
+ * Check if all of the components of the two triplets are within tolerance of each other
+ * @param a The first triplet to check
+ * @param b The second triplet to check
+ * @param tolerance The range to check the components are within
+ */
+export function isClose(a: Triplet<number>, b: Triplet<number>, tolerance: number): boolean {
+	for (let i = 0; i < 3; i++) {
+		if (Math.abs(a[i] - b[i]) > tolerance) {
+			return false;
+		}
+	}
+
+	return true;
+}

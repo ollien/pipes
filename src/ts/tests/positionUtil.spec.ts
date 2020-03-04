@@ -98,4 +98,11 @@ describe('positionUtil', () => {
 	it('should convert degrees to radians properly', () => {
 		assert.closeTo(positionUtil.degreesToRadians(45), Math.PI / 4, 0.001);
 	});
+
+	it('should check that triplets are equal within a tolerance', () => {
+		const triplet1: Triplet<number> = [0, 0.00001, 0];
+		const triplet2: Triplet<number> = [0, 0, 0];
+
+		assert.isTrue(positionUtil.isClose(triplet1, triplet2, 0.001));
+	});
 });
