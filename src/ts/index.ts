@@ -89,7 +89,7 @@ function setupGUI(
 
 	// All of these values are those that will reset the simulation upon being adjusted
 	const resettingValues = [
-		gui.add(parameters, 'numPipes', 1, 6, 1),
+		gui.add(parameters, 'numPipes', 1, 8, 1),
 		gui.add(parameters, 'numPipeTurns', 4, 32, 1),
 		gui.add(parameters, 'rotationAngle', 0, 90),
 		gui.add(parameters, 'fixedCamera'),
