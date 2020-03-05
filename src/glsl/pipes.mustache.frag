@@ -186,6 +186,7 @@ mat4 viewMatrix(vec3 eye, vec3 center, vec3 up) {
 /**
  * Perform a raymarching operation from the given origin along the given direction vector.
  * Returns the normal vector at the struck position as the first 3 components, and the pipe id as the fourth component.
+ * If the pipe id is -1, no pipe was struck.
  */
 vec4 get_marched_pipe(vec3 ray_origin, vec3 ray_direction) {
 	float depth = 0.;
@@ -209,7 +210,7 @@ vec4 get_marched_pipe(vec3 ray_origin, vec3 ray_direction) {
 		}
 	}
 
-	return vec4(0.);
+	return vec4(vec3(0.), -1);
 }
 
 /**
