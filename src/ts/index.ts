@@ -9,6 +9,7 @@ import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 const DEFAULT_NUM_PIPES = 8;
 const DEFAULT_ROTATION_ANGLE = 90;
 const DEFAULT_NUM_PIPE_TURNS = 16;
+const DEFAULT_OBSERVATION_POINT = <Triplet<number>>[10, -10, 10];
 const DELAY_BEFORE_REDRAW = 2500;
 
 const RENDER_TRIANGLE_VERTS = [
@@ -19,6 +20,10 @@ const RENDER_TRIANGLE_VERTS = [
 	[1, -1],
 	[1, 1],
 ];
+
+interface SimulationParameters extends PipeParameters {
+	fixedCamera: boolean
+}
 
 /**
  * Set the size of the given canvas to the window size
@@ -62,12 +67,13 @@ function generateObservationPoint(): Triplet<number> {
  * @param properties The object to adjust the parameters of
  * @param resetFunc Function to reset the simulation
  */
-function setupGUI(properties: PipeParameters, resetFunc: () => void): void {
+function setupGUI(properties: SimulationParameters, resetFunc: () => void): void {
 	const gui = new dat.GUI();
 	const adjustableValues = [
 		gui.add(properties, 'rotationAngle', 0, 90),
 		gui.add(properties, 'numPipes', 1, 6, 1),
 		gui.add(properties, 'numPipeTurns', 4, 32, 1),
+		gui.add(properties, 'fixedCamera'),
 	];
 
 	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
@@ -85,11 +91,11 @@ window.addEventListener('load', () => {
 	setCanvasSize(canvas);
 
 	const regl = reglModule(canvas);
-
-	const simulationParameters = {
+	const simulationParameters: SimulationParameters = {
 		rotationAngle: DEFAULT_ROTATION_ANGLE,
 		numPipeTurns: DEFAULT_NUM_PIPE_TURNS,
 		numPipes: DEFAULT_NUM_PIPES,
+		fixedCamera: false,
 	};
 
 	const pipeGenerator = new PipeGenerator();
@@ -98,7 +104,13 @@ window.addEventListener('load', () => {
 	let tickCount = 0;
 	let timeoutId: number|null = null;
 	const makeSimulationComponents = () => {
-		pipeSimulation = new PipeSimulation(regl, pipeGenerator, simulationParameters, generateObservationPoint);
+		pipeSimulation = new PipeSimulation(
+			regl,
+			pipeGenerator,
+			simulationParameters,
+			() => (simulationParameters.fixedCamera ? DEFAULT_OBSERVATION_POINT : generateObservationPoint()),
+		);
+
 		renderPipes = pipeSimulation.getPipeRenderCommand();
 		tickCount = 0;
 		if (timeoutId !== null) {
