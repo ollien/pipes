@@ -108,6 +108,8 @@ window.addEventListener('load', () => {
 
 	makeSimulationComponents();
 	setupGUI(simulationParameters, makeSimulationComponents);
+
+	let errorAlerted = false;
 	regl.frame(() => {
 		regl({
 			vert: trianglesShaderSource,
@@ -120,7 +122,19 @@ window.addEventListener('load', () => {
 				time: () => tickCount,
 			},
 		})(() => {
-			renderPipes();
+			try {
+				renderPipes();
+				errorAlerted = false;
+			} catch (e) {
+				// We don't want to notify the user on every frame. Give them the chance to fix the error.
+				if (!errorAlerted) {
+					// eslint-disable-next-line no-alert
+					alert('Simulation parameters are preventing shader compilation. Please lower your settings.');
+				}
+
+				errorAlerted = true;
+				throw e;
+			}
 		});
 
 		tickCount++;
