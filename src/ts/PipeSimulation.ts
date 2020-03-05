@@ -126,7 +126,6 @@ export default class PipeSimulation {
 		const usedPositions: Triplet<number>[] = [];
 		return Array(numPipes).fill(0).map((): RenderablePipe => {
 			const position = this.pipeGenerator.generatePosition(usedPositions);
-			console.log(position);
 			usedPositions.push(position);
 
 			return {
