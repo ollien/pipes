@@ -77,7 +77,13 @@ function setupGUI(
 	qualityCallback: (value: number) => void,
 ): void {
 	const gui = new dat.GUI();
-	// Represents values that will reset the simulation upon being adjusted
+
+	// The quality adjustment specifically does not need to reset after being called
+	// It will pass the new value along to a callback
+	const qualityAdjustment = gui.add(parameters, 'quality', 0.1, 1);
+	qualityAdjustment.onFinishChange(qualityCallback);
+
+	// All of these values are those that will reset the simulation upon being adjusted
 	const resettingValues = [
 		gui.add(parameters, 'rotationAngle', 0, 90),
 		gui.add(parameters, 'numPipes', 1, 6, 1),
@@ -87,11 +93,6 @@ function setupGUI(
 	resettingValues.forEach((controller: dat.GUIController) => {
 		controller.onFinishChange(resetFunc);
 	});
-
-	// The quality adjustment specifically does not need to reset after being called
-	// It will pass the new value along to a callback
-	const qualityAdjustment = gui.add(parameters, 'quality', 0.1, 1);
-	qualityAdjustment.onFinishChange(qualityCallback);
 
 	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
 }
