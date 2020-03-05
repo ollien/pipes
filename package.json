@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Windows Pipes Simulation",
   "scripts": {
-    "build": "webpack --config webpack.prod.js",
-    "start": "npm run web-server && webpack --watch --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js --mode=production",
+    "start": "npm run web-server && webpack --watch --config webpack.dev.js --mode=development",
     "test": "cross-env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' npx mocha -r ts-node/register src/ts/tests/*.spec.ts",
     "web-server": "http-server -a 127.0.0.1 -p 8000 ./ &"
   },
