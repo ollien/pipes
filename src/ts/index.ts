@@ -97,24 +97,6 @@ function setupGUI(
 	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
 }
 
-/**
- * Reset the simulation if the tick count hits the needed threshold. Returns the timeout id of the set timeout.
- * @param tickCount The current tick count
- * @param parameters The parameters of the simulation
- * @param resetFunc The function that will be called if a reset is needed
- */
-function resetSimulationIfNeeded(
-	tickCount: number,
-	parameters: SimulationParameters,
-	resetFunc: () => void,
-): number|null {
-	if (tickCount % (parameters.numPipes * parameters.numPipeTurns) !== 0) {
-		return null;
-	}
-
-	return setTimeout(resetFunc, DELAY_BEFORE_REDRAW);
-}
-
 window.addEventListener('load', () => {
 	const canvas = <HTMLCanvasElement|null>document.getElementById('gl');
 	if (canvas === null) {
@@ -149,8 +131,9 @@ window.addEventListener('load', () => {
 
 		renderPipes = pipeSimulation.getPipeRenderCommand();
 		tickCount = 0;
-		if (timeoutId !== null) {
+		if (timeoutId != null) {
 			clearTimeout(timeoutId);
+			timeoutId = null;
 		}
 	};
 
@@ -188,6 +171,11 @@ window.addEventListener('load', () => {
 		});
 
 		tickCount++;
-		timeoutId = resetSimulationIfNeeded(tickCount, simulationParameters, makeSimulationComponents);
+		// If our simulation has hit the point where all of the pipes have been drawn, and we're not
+		// currently waiting for a reset, schedule a reset of the simulation
+		if (tickCount % (simulationParameters.numPipes * simulationParameters.numPipeTurns) === 0
+			&& timeoutId == null) {
+			timeoutId = setTimeout(makeSimulationComponents, DELAY_BEFORE_REDRAW);
+		}
 	});
 });
