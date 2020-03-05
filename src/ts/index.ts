@@ -48,19 +48,23 @@ function setCanvasSize(canvas: HTMLCanvasElement, scaleFactor: number = 1): void
  * Generate a random observation point
  */
 function generateObservationPoint(): Triplet<number> {
+	// Phi, theta, and radius represent the parameters of a spherical coordinate
 	const PHI_MIN = -85;
 	const PHI_MAX = 85;
 	const THETA_MIN = -135;
 	const THETA_MAX = 135;
-	const RADIUS = 16;
+	const RADIUS_MIN = 14;
+	const RADIUS_MAX = 20;
 
 	const phi = positionUtil.degreesToRadians(Math.random() * (PHI_MAX - PHI_MIN) + PHI_MIN);
 	const theta = positionUtil.degreesToRadians(Math.random() * (THETA_MAX - THETA_MIN) + THETA_MIN);
+	const radius = Math.random() * (RADIUS_MAX - RADIUS_MIN) + RADIUS_MIN;
 
+	// Convert the spherical coordinate to rectangular
 	return [
-		RADIUS * Math.sin(phi) * Math.cos(theta),
-		RADIUS * Math.sin(phi) * Math.sin(theta),
-		RADIUS * Math.cos(phi),
+		radius * Math.sin(phi) * Math.cos(theta),
+		radius * Math.sin(phi) * Math.sin(theta),
+		radius * Math.cos(phi),
 	];
 }
 
