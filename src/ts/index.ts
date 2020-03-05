@@ -22,7 +22,10 @@ const RENDER_TRIANGLE_VERTS = [
 ];
 
 interface SimulationParameters extends PipeParameters {
-	fixedCamera: boolean
+	// Represents whether or not the simulation's camera will be fixed
+	fixedCamera: boolean,
+	// Represents how good the rendered picture will look, out of 1.
+	quality: number,
 }
 
 /**
@@ -66,20 +69,31 @@ function generateObservationPoint(): Triplet<number> {
  *
  * @param parameters The object to adjust the parameters of
  * @param resetFunc Function to reset the simulation
+ * @param qualityCallback Function that will be called when the quality is changed
  */
-function setupGUI(parameters: SimulationParameters, resetFunc: () => void): void {
+function setupGUI(
+	parameters: SimulationParameters,
+	resetFunc: () => void,
+	qualityCallback: (value: number) => void,
+): void {
 	const gui = new dat.GUI();
-	const adjustableValues = [
+	// Represents values that will reset the simulation upon being adjusted
+	const resettingValues = [
 		gui.add(parameters, 'rotationAngle', 0, 90),
 		gui.add(parameters, 'numPipes', 1, 6, 1),
 		gui.add(parameters, 'numPipeTurns', 4, 32, 1),
 		gui.add(parameters, 'fixedCamera'),
 	];
-
-	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
-	adjustableValues.forEach((controller: dat.GUIController) => {
+	resettingValues.forEach((controller: dat.GUIController) => {
 		controller.onFinishChange(resetFunc);
 	});
+
+	// The quality adjustment specifically does not need to reset after being called
+	// It will pass the new value along to a callback
+	const qualityAdjustment = gui.add(parameters, 'quality', 0.1, 1);
+	qualityAdjustment.onFinishChange(qualityCallback);
+
+	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
 }
 
 /**
@@ -106,7 +120,6 @@ window.addEventListener('load', () => {
 		throw Error('No gl canvas available in document.');
 	}
 
-	setCanvasSize(canvas);
 
 	const regl = reglModule(canvas);
 	const simulationParameters: SimulationParameters = {
@@ -114,6 +127,7 @@ window.addEventListener('load', () => {
 		numPipeTurns: DEFAULT_NUM_PIPE_TURNS,
 		numPipes: DEFAULT_NUM_PIPES,
 		fixedCamera: false,
+		quality: 1,
 	};
 
 	const pipeGenerator = new PipeGenerator();
@@ -124,6 +138,7 @@ window.addEventListener('load', () => {
 	// Initializes all of the parameters needed for the simulation.
 	// By breaking this into a closure, we can use it to reset the simulation when needed.
 	const makeSimulationComponents = () => {
+		setCanvasSize(canvas, simulationParameters.quality);
 		pipeSimulation = new PipeSimulation(
 			regl,
 			pipeGenerator,
@@ -138,8 +153,10 @@ window.addEventListener('load', () => {
 		}
 	};
 
+	// Setup the simulation and all UI components
 	makeSimulationComponents();
-	setupGUI(simulationParameters, makeSimulationComponents);
+	setupGUI(simulationParameters, makeSimulationComponents, (quality: number) => setCanvasSize(canvas, quality));
+	window.addEventListener('resize', () => setCanvasSize(canvas, simulationParameters.quality));
 
 	let errorAlerted = false;
 	regl.frame(() => {
