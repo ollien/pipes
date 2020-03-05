@@ -2,7 +2,7 @@ import reglModule, { DrawCommand } from 'regl'; // eslint-disable-line no-unused
 import * as dat from 'dat.gui';
 import trianglesShaderSource from '@shader/triangles.vert'; // eslint-disable-line import/no-unresolved
 import PipeGenerator from './PipeGenerator'; // eslint-disable-line no-unused-vars
-import PipeSimulation, { PipeParameters } from './PipeSimulation';
+import PipeSimulation, { PipeParameters } from './PipeSimulation'; // eslint-disable-line no-unused-vars
 import * as positionUtil from './positionUtil';
 import { Triplet } from './positionUtil'; // eslint-disable-line no-unused-vars
 
@@ -64,22 +64,40 @@ function generateObservationPoint(): Triplet<number> {
 /**
  * Setup the control GUI
  *
- * @param properties The object to adjust the parameters of
+ * @param parameters The object to adjust the parameters of
  * @param resetFunc Function to reset the simulation
  */
-function setupGUI(properties: SimulationParameters, resetFunc: () => void): void {
+function setupGUI(parameters: SimulationParameters, resetFunc: () => void): void {
 	const gui = new dat.GUI();
 	const adjustableValues = [
-		gui.add(properties, 'rotationAngle', 0, 90),
-		gui.add(properties, 'numPipes', 1, 6, 1),
-		gui.add(properties, 'numPipeTurns', 4, 32, 1),
-		gui.add(properties, 'fixedCamera'),
+		gui.add(parameters, 'rotationAngle', 0, 90),
+		gui.add(parameters, 'numPipes', 1, 6, 1),
+		gui.add(parameters, 'numPipeTurns', 4, 32, 1),
+		gui.add(parameters, 'fixedCamera'),
 	];
 
 	gui.add({ resetSimulation: resetFunc }, 'resetSimulation');
 	adjustableValues.forEach((controller: dat.GUIController) => {
 		controller.onFinishChange(resetFunc);
 	});
+}
+
+/**
+ * Reset the simulation if the tick count hits the needed threshold. Returns the timeout id of the set timeout.
+ * @param tickCount The current tick count
+ * @param parameters The parameters of the simulation
+ * @param resetFunc The function that will be called if a reset is needed
+ */
+function resetSimulationIfNeeded(
+	tickCount: number,
+	parameters: SimulationParameters,
+	resetFunc: () => void,
+): number|null {
+	if (tickCount % (parameters.numPipes * parameters.numPipeTurns) !== 0) {
+		return null;
+	}
+
+	return setTimeout(resetFunc, DELAY_BEFORE_REDRAW);
 }
 
 window.addEventListener('load', () => {
@@ -103,6 +121,8 @@ window.addEventListener('load', () => {
 	let renderPipes: DrawCommand;
 	let tickCount = 0;
 	let timeoutId: number|null = null;
+	// Initializes all of the parameters needed for the simulation.
+	// By breaking this into a closure, we can use it to reset the simulation when needed.
 	const makeSimulationComponents = () => {
 		pipeSimulation = new PipeSimulation(
 			regl,
@@ -150,11 +170,6 @@ window.addEventListener('load', () => {
 		});
 
 		tickCount++;
-		// The simulation operates at one pipe component per tick, so once we reach that, we can start a timer.
-		if (tickCount % (simulationParameters.numPipes * simulationParameters.numPipeTurns) === 0) {
-			timeoutId = setTimeout(() => {
-				makeSimulationComponents();
-			}, DELAY_BEFORE_REDRAW);
-		}
+		timeoutId = resetSimulationIfNeeded(tickCount, simulationParameters, makeSimulationComponents);
 	});
 });
