@@ -151,7 +151,7 @@ window.addEventListener('load', () => {
 
 		tickCount++;
 		// The simulation operates at one pipe component per tick, so once we reach that, we can start a timer.
-		if (tickCount % (DEFAULT_NUM_PIPES * DEFAULT_NUM_PIPE_TURNS) === 0) {
+		if (tickCount % (simulationParameters.numPipes * simulationParameters.numPipeTurns) === 0) {
 			timeoutId = setTimeout(() => {
 				makeSimulationComponents();
 			}, DELAY_BEFORE_REDRAW);
