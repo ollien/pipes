@@ -6,7 +6,6 @@ precision mediump float;
 
 #pragma glslify: import('./vendor/hg_sdf.glsl')
 #pragma glslify: orenNayar = require(glsl-diffuse-oren-nayar)
-#pragma glslify: rotateQ = require(glsl-y-rotate/rotateQ)
 
 // GL_ES uses IEEE754 floats, where this is the maximum
 #define FLOAT_MAX 3.402823466e+38
