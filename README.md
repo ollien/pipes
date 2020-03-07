@@ -4,7 +4,7 @@ A recreation of the classic [Windows XP "Pipes" Screensaver](https://www.youtube
 
 [Video Demo](https://www.youtube.com/watch?v=cqNNFK9VpVA)
 
-[Demo](https://ollien.github.io/pipes-simulation/)
+[Demo](https://ollien.github.io/pipes)
 
 If you get poor performance with the demo, shrink your window and/or lower the quality. The raymarching technique used by the shader can be quite expensive, especially with a large number of pipes. I have also seen unexplainable performance dips in Firefox on Windows.
 
